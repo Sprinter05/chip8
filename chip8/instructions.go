@@ -25,14 +25,16 @@ func (c *CHIP8) instrSetI(address uint16) {
 }
 
 func (c *CHIP8) instrDraw(X uint8, Y uint8, nibble byte) {
-	posX := uint8(c.Registers[X] % byte(DISPLAY_X))
-	posY := uint8(c.Registers[Y] % byte(DISPLAY_Y))
+	initX := uint8(c.Registers[X] % uint8(DISPLAY_X))
+	initY := uint8(c.Registers[Y] % uint8(DISPLAY_Y))
+	posX := initX
+	posY := initY
 
 	// Set VF flag
 	c.Registers[0xF] = 0x0
 
 	for _, s := range c.Memory[c.I : c.I+uint16(nibble)] {
-		for i := 0; i < 8; i++ { // byte size
+		for i := 7; i >= 0; i-- { // byte size
 			pixel := (s >> i) &^ 0xFE
 
 			shouldBeOn := false
@@ -48,13 +50,14 @@ func (c *CHIP8) instrDraw(X uint8, Y uint8, nibble byte) {
 			}
 
 			posX++
-			if posX > uint8(DISPLAY_X) {
+			if posX >= uint8(DISPLAY_X) {
 				break
 			}
 		}
 
 		posY++
-		if posY > uint8(DISPLAY_Y) {
+		posX = initX
+		if posY >= uint8(DISPLAY_Y) {
 			break
 		}
 	}

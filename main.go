@@ -10,7 +10,8 @@ import (
 
 const FPS float64 = 60.0
 const FRAMETIME_US float64 = 1000000.0 / FPS // microseconds
-const SIZE = 10                              // size for pixels
+const OFFSET = 10                            // offset for pixels
+const SIZE = 9                               // size for pixels
 
 var fileROM string
 
@@ -39,11 +40,11 @@ func main() {
 		panic(err)
 	}
 
+	rl.SetConfigFlags(rl.FlagVsyncHint)
 	rl.InitWindow(640, 320, "CHIP8 Interpreter")
 	defer rl.CloseWindow()
 
 	rl.SetTargetFPS(int32(FPS))
-	rl.SetConfigFlags(rl.FlagVsyncHint)
 
 	// dur := int64(math.Round(FRAMETIME_US))
 	// ticker := time.NewTicker(time.Duration(dur) * time.Microsecond)
@@ -59,7 +60,7 @@ func main() {
 		for x := range emu.Display {
 			for y, v := range emu.Display[x] {
 				if v {
-					rl.DrawRectangle(int32(x), int32(y), SIZE, SIZE, rl.White)
+					rl.DrawRectangle(int32(x*OFFSET), int32(y*OFFSET), SIZE, SIZE, rl.White)
 				}
 			}
 		}
