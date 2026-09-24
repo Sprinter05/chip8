@@ -1,11 +1,7 @@
 package chip8
 
 func (c *CHIP8) instrClearScreen() {
-	for i := range c.Display {
-		for j := range c.Display[i] {
-			c.Display[i][j] = false
-		}
-	}
+	clear(c.Display[:][:])
 }
 
 func (c *CHIP8) instrJump(address uint16) {

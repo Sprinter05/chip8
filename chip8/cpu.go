@@ -44,20 +44,24 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 
 	// Instruction formatitng is weird
 	// so we just do if-else
-	if instr == 0x00E0 {
+	switch instr {
+	case 0x00E0:
 		c.instrClearScreen()
-	} else if (instr &^ 0x0FFF) == 0x1000 {
-		c.instrJump(address)
-	} else if (instr &^ 0x0FFF) == 0x6000 {
-		c.instrSetVX(varX, hexadecimal)
-	} else if (instr &^ 0x0FFF) == 0x7000 {
-		c.instrAddVX(varX, hexadecimal)
-	} else if (instr &^ 0x0FFF) == 0xA000 {
-		c.instrSetI(address)
-	} else if (instr &^ 0x0FFF) == 0xD000 {
-		c.instrDraw(varX, varY, nibble)
-	} else {
-		panic(ErrNotImplemented)
+	default:
+		switch instr &^ 0x0FFF {
+		case 0x1000:
+			c.instrJump(address)
+		case 0x6000:
+			c.instrSetVX(varX, hexadecimal)
+		case 0x7000:
+			c.instrAddVX(varX, hexadecimal)
+		case 0xA000:
+			c.instrSetI(address)
+		case 0xD000:
+			c.instrDraw(varX, varY, nibble)
+		default:
+			panic(ErrNotImplemented)
+		}
 	}
 }
 
@@ -83,23 +87,11 @@ func (c *CHIP8) Step() {
 }
 
 func (c *CHIP8) Reset() {
-	// Clear registers
+	// Clear everything
 	c.I = 0x0
-	for i := range c.Registers {
-		c.Registers[i] = 0x0
-	}
-
-	// Clear Memory
-	for i := range c.Memory {
-		c.Memory[i] = 0x0
-	}
-
-	// Clear display
-	for i := range c.Display {
-		for j := range c.Display[i] {
-			c.Display[i][j] = false
-		}
-	}
+	clear(c.Registers[:])
+	clear(c.Memory[:])
+	clear(c.Display[:][:])
 
 	// Clear stack
 	c.Stack = models.NewStack[uint16](STACK_SIZE)
@@ -111,5 +103,5 @@ func (c *CHIP8) Reset() {
 	c.ST = 0x0
 
 	// Load font onto memory
-	c.LoadFont()
+	copy(c.Memory[FONT_OFFSET:], CHIP8_FONT)
 }

@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"math"
 	"os"
+	"time"
 
 	"github.com/Sprinter05/chip-8/chip8"
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -10,8 +12,8 @@ import (
 
 const FPS float64 = 60.0
 const FRAMETIME_US float64 = 1000000.0 / FPS // microseconds
-const OFFSET = 10                            // offset for pixels
-const SIZE = 9                               // size for pixels
+const WINDOW_WIDTH = 640
+const WINDOW_HEIGHT = 320
 
 var fileROM string
 
@@ -34,40 +36,58 @@ func load(c *chip8.CHIP8) error {
 }
 
 func main() {
+	// Create and setup the emulator
 	emu := new(chip8.CHIP8)
 	emu.Reset()
 	if err := load(emu); err != nil {
 		panic(err)
 	}
 
-	rl.SetConfigFlags(rl.FlagVsyncHint)
-	rl.InitWindow(640, 320, "CHIP8 Interpreter")
+	// Initialise raylib
+	rl.SetConfigFlags(rl.FlagVsyncHint | rl.FlagWindowResizable)
+	rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "CHIP8 Interpreter")
 	defer rl.CloseWindow()
 
+	// Create texture for emulator display
+	canvas := rl.LoadRenderTexture(int32(chip8.DISPLAY_X), int32(chip8.DISPLAY_Y))
+	defer rl.UnloadRenderTexture(canvas)
+
+	// Create ticker for waiting when stepping
+	dur := int64(math.Round(FRAMETIME_US))
+	ticker := time.NewTicker(time.Duration(dur) * time.Microsecond)
+	defer ticker.Stop()
+
+	// Main loop
 	rl.SetTargetFPS(int32(FPS))
-
-	// dur := int64(math.Round(FRAMETIME_US))
-	// ticker := time.NewTicker(time.Duration(dur) * time.Microsecond)
-
 	for !rl.WindowShouldClose() {
 		// CPU
 		emu.Step()
+
+		// TEXTURE
+		// Draw onto a 64x32 texture
+		rl.BeginTextureMode(canvas)
+		rl.ClearBackground(rl.Black)
+		for x := range emu.Display {
+			for y, v := range emu.Display[x] {
+				if v {
+					rl.DrawPixel(int32(x), int32(y), rl.White)
+				}
+			}
+		}
+		rl.EndTextureMode()
 
 		// DISPLAY
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
 
-		for x := range emu.Display {
-			for y, v := range emu.Display[x] {
-				if v {
-					rl.DrawRectangle(int32(x*OFFSET), int32(y*OFFSET), SIZE, SIZE, rl.White)
-				}
-			}
-		}
+		// Resize and render texture
+		src := rl.NewRectangle(0, 0, float32(chip8.DISPLAY_X), -float32(chip8.DISPLAY_Y))
+		dst := rl.NewRectangle(0, 0, float32(rl.GetScreenWidth()), float32(rl.GetScreenHeight()))
+		rl.DrawTexturePro(canvas.Texture, src, dst, rl.NewVector2(0, 0), 0, rl.White)
 
 		rl.EndDrawing()
 
 		// WAIT
-		// <-ticker.C
+		<-ticker.C
 	}
 }
