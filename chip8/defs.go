@@ -31,7 +31,7 @@ var CHIP8_FONT = []byte{
 }
 
 type inputFunc func() (byte, bool)
-type inputListFunc func() ([]byte, bool)
+type inputListFunc func() []byte
 
 type CHIP8 struct {
 	// Private values

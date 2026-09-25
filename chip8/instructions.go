@@ -200,18 +200,47 @@ func (c *CHIP8) instrCXNN(X uint8, hex byte) {
 
 func (c *CHIP8) instrEX9E(X uint8) {
 	valX := c.registers[X]
-	keys, pressed := c.callbackListInput()
+	keys := c.callbackListInput()
 
-	if pressed && slices.Contains(keys, valX) {
+	if slices.Contains(keys, valX) {
 		c.regPC += 2
 	}
 }
 
 func (c *CHIP8) instrEXA1(X uint8) {
 	valX := c.registers[X]
-	keys, pressed := c.callbackListInput()
+	keys := c.callbackListInput()
 
-	if pressed && !slices.Contains(keys, valX) {
+	if !slices.Contains(keys, valX) {
 		c.regPC += 2
 	}
+}
+
+func (c *CHIP8) instrFX07(X uint8) {
+	c.registers[X] = c.regDT
+}
+
+func (c *CHIP8) instrFX0A(X uint8) {
+	key, pressed := c.callbackInput()
+	if !pressed {
+		c.regPC -= 2
+		return
+	}
+
+	c.registers[X] = key
+}
+
+func (c *CHIP8) instrFX15(X uint8) {
+	valX := c.registers[X]
+	c.regDT = valX
+}
+
+func (c *CHIP8) instrFX18(X uint8) {
+	valX := c.registers[X]
+	c.regST = valX
+}
+
+func (c *CHIP8) instrFX1E(X uint8) {
+	valX := c.registers[X]
+	c.regI += uint16(valX)
 }

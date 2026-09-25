@@ -57,6 +57,16 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 			c.instrEX9E(varX)
 		case 0xE0A1:
 			c.instrEXA1(varX)
+		case 0xF007:
+			c.instrFX07(varX)
+		case 0xF00A:
+			c.instrFX0A(varX)
+		case 0xF015:
+			c.instrFX15(varX)
+		case 0xF018:
+			c.instrFX18(varX)
+		case 0xF01E:
+			c.instrFX1E(varX)
 		default:
 			switch instr &^ 0x0FF0 {
 			case 0x5000:
@@ -106,7 +116,7 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 				case 0xD000:
 					c.instrDXYN(varX, varY, nibble)
 				default:
-					log.Printf("[INSTR] Not implemented: %x\n", instr)
+					log.Printf("%x not implemented!\n", instr)
 					panic(ErrNotImplemented)
 				}
 			}

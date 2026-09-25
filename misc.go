@@ -22,7 +22,7 @@ func inputCallback() (byte, bool) {
 	return 0x0, false
 }
 
-func inputListCallback() ([]byte, bool) {
+func inputListCallback() []byte {
 	list := make([]byte, 0, len(KB_KEYS))
 	for code, expected := range KB_KEYS {
 		if rl.IsKeyPressed(expected) {
@@ -30,7 +30,7 @@ func inputListCallback() ([]byte, bool) {
 		}
 	}
 
-	return list, false
+	return list
 }
 
 func drawOnTexture(canvas rl.RenderTexture2D, emu *chip8.CHIP8) {
