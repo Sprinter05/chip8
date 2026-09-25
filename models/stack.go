@@ -22,7 +22,7 @@ func NewStack[T any](size uint) Stack[T] {
 	}
 }
 
-func (s Stack[T]) Push(v T) error {
+func (s *Stack[T]) Push(v T) error {
 	if s.last >= s.max-1 {
 		return ErrMaxCapacity
 	}
@@ -32,13 +32,15 @@ func (s Stack[T]) Push(v T) error {
 	return nil
 }
 
-func (s Stack[T]) Pop() (T, error) {
+func (s *Stack[T]) Pop() (T, error) {
 	var empty T
 	if s.last == 0 {
 		return empty, ErrEmpty
 	}
 
-	defer slices.Delete(s.data, int(s.last-1), int(s.last))
+	val := s.data[s.last-1]
+	s.data = slices.Delete(s.data, int(s.last-1), int(s.last))
 	s.last -= 1
-	return s.data[s.last-1], nil
+
+	return val, nil
 }

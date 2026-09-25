@@ -72,7 +72,11 @@ func (c *CHIP8) instrDXYN(X uint8, Y uint8, nibble byte) {
 }
 
 func (c *CHIP8) instr2NNN(addr uint16) {
-	c.stack.Push(c.regPC)
+	err := c.stack.Push(c.regPC)
+	if err != nil {
+		panic(ErrInvalidStackManipulation)
+	}
+
 	c.regPC = addr
 }
 
