@@ -15,31 +15,31 @@ func (c *CHIP8) instrClearScreen() {
 }
 
 func (c *CHIP8) instrJump(address uint16) {
-	c.PC = address
+	c.regPC = address
 }
 
 func (c *CHIP8) instrSetVX(X uint8, val byte) {
-	c.Registers[X] = val
+	c.registers[X] = val
 }
 
 func (c *CHIP8) instrAddVX(X uint8, val byte) {
-	c.Registers[X] += val
+	c.registers[X] += val
 }
 
 func (c *CHIP8) instrSetI(address uint16) {
-	c.I = address
+	c.regI = address
 }
 
 func (c *CHIP8) instrDraw(X uint8, Y uint8, nibble byte) {
-	initX := uint8(c.Registers[X] % uint8(DISPLAY_X))
-	initY := uint8(c.Registers[Y] % uint8(DISPLAY_Y))
+	initX := uint8(c.registers[X] % uint8(DISPLAY_X))
+	initY := uint8(c.registers[Y] % uint8(DISPLAY_Y))
 	posX := initX
 	posY := initY
 
 	// Set VF flag
-	c.Registers[0xF] = 0x0
+	c.registers[0xF] = 0x0
 
-	for _, s := range c.Memory[c.I : c.I+uint16(nibble)] {
+	for _, s := range c.memory[c.regI : c.regI+uint16(nibble)] {
 		for i := 7; i >= 0; i-- { // byte size
 			pixel := (s >> i) &^ 0xFE
 
@@ -50,7 +50,7 @@ func (c *CHIP8) instrDraw(X uint8, Y uint8, nibble byte) {
 
 			if c.Display[posX][posY] && shouldBeOn {
 				c.Display[posX][posY] = false
-				c.Registers[0xF] = 0x01
+				c.registers[0xF] = 0x01
 			} else if shouldBeOn {
 				c.Display[posX][posY] = true
 			}
@@ -70,129 +70,129 @@ func (c *CHIP8) instrDraw(X uint8, Y uint8, nibble byte) {
 }
 
 func (c *CHIP8) instrCallSubroutine(addr uint16) {
-	c.Stack.Push(c.PC)
-	c.PC = addr
+	c.stack.Push(c.regPC)
+	c.regPC = addr
 }
 
 func (c *CHIP8) instrReturnSubroutine() {
-	addr, err := c.Stack.Pop()
+	addr, err := c.stack.Pop()
 	if err != nil {
 		panic(ErrInvalidStackManipulation)
 	}
 
-	c.PC = addr
+	c.regPC = addr
 }
 
 func (c *CHIP8) instrSkipInstrEqualVX(X uint8, hex byte) {
-	valX := c.Registers[X]
+	valX := c.registers[X]
 
 	if valX == hex {
-		c.PC += 2
+		c.regPC += 2
 	}
 }
 
 func (c *CHIP8) instrSkipInstrNotEqualVX(X uint8, hex byte) {
-	valX := c.Registers[X]
+	valX := c.registers[X]
 
 	if valX != hex {
-		c.PC += 2
+		c.regPC += 2
 	}
 }
 
 func (c *CHIP8) instrSkipInstrEqualVXVY(X uint8, Y uint8) {
-	valX := c.Registers[X]
-	valY := c.Registers[Y]
+	valX := c.registers[X]
+	valY := c.registers[Y]
 
 	if valX == valY {
-		c.PC += 2
+		c.regPC += 2
 	}
 }
 
 func (c *CHIP8) instrStoreVYinVX(X uint8, Y uint8) {
-	valY := c.Registers[Y]
-	c.Registers[X] = valY
+	valY := c.registers[Y]
+	c.registers[X] = valY
 }
 
 func (c *CHIP8) instrVXorVY(X uint8, Y uint8) {
-	c.Registers[X] |= c.Registers[Y]
+	c.registers[X] |= c.registers[Y]
 }
 
 func (c *CHIP8) instrVXandVY(X uint8, Y uint8) {
-	c.Registers[X] &= c.Registers[Y]
+	c.registers[X] &= c.registers[Y]
 }
 
 func (c *CHIP8) instrVXxorVY(X uint8, Y uint8) {
-	c.Registers[X] ^= c.Registers[Y]
+	c.registers[X] ^= c.registers[Y]
 }
 
 func (c *CHIP8) instrAddVYtoVX(X uint8, Y uint8) {
-	valX := c.Registers[X]
-	valY := c.Registers[Y]
+	valX := c.registers[X]
+	valY := c.registers[Y]
 
 	// Overflow detection
 	if valX+valY < valX {
-		c.Registers[0xF] = 0x1
+		c.registers[0xF] = 0x1
 	} else {
-		c.Registers[0xF] = 0x0
+		c.registers[0xF] = 0x0
 	}
 
-	c.Registers[X] += valY
+	c.registers[X] += valY
 }
 
 func (c *CHIP8) instrSubVYfromVX(X uint8, Y uint8) {
-	valX := c.Registers[X]
-	valY := c.Registers[Y]
+	valX := c.registers[X]
+	valY := c.registers[Y]
 
 	// Borrow detection
 	if valX > valY {
-		c.Registers[0xF] = 0x1
+		c.registers[0xF] = 0x1
 	} else {
-		c.Registers[0xF] = 0x0
+		c.registers[0xF] = 0x0
 	}
 
-	c.Registers[X] = valX - valY
+	c.registers[X] = valX - valY
 }
 
 func (c *CHIP8) instrSubVXfromVYtoVX(X uint8, Y uint8) {
-	valX := c.Registers[X]
-	valY := c.Registers[Y]
+	valX := c.registers[X]
+	valY := c.registers[Y]
 
 	// Borrow detection
 	if valY > valX {
-		c.Registers[0xF] = 0x1
+		c.registers[0xF] = 0x1
 	} else {
-		c.Registers[0xF] = 0x0
+		c.registers[0xF] = 0x0
 	}
 
-	c.Registers[X] = valY - valX
+	c.registers[X] = valY - valX
 }
 
 func (c *CHIP8) instrShiftVYright(X uint8, Y uint8) {
-	valY := c.Registers[Y]
-	c.Registers[X] = valY >> 1
-	c.Registers[0xF] = valY &^ 0xFE
+	valY := c.registers[Y]
+	c.registers[X] = valY >> 1
+	c.registers[0xF] = valY &^ 0xFE
 }
 
 func (c *CHIP8) instrShiftVYleft(X uint8, Y uint8) {
-	valY := c.Registers[Y]
-	c.Registers[X] = valY << 1
-	c.Registers[0xF] = valY &^ 0x7F
+	valY := c.registers[Y]
+	c.registers[X] = valY << 1
+	c.registers[0xF] = valY &^ 0x7F
 }
 
 func (c *CHIP8) instrSkipInstrNotEqualVXVY(X uint8, Y uint8) {
-	valX := c.Registers[X]
-	valY := c.Registers[Y]
+	valX := c.registers[X]
+	valY := c.registers[Y]
 
 	if valX != valY {
-		c.PC += 2
+		c.regPC += 2
 	}
 }
 
 func (c *CHIP8) instrJumpToAddrByV0(addr uint16) {
-	c.PC = addr + uint16(c.Registers[0x0])
+	c.regPC = addr + uint16(c.registers[0x0])
 }
 
 func (c *CHIP8) instrSetVXToRandAndMask(X uint8, hex byte) {
 	num := uint8(rand.UintN(math.MaxUint8 + 1))
-	c.Registers[X] = num & hex
+	c.registers[X] = num & hex
 }

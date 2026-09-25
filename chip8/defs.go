@@ -30,14 +30,28 @@ var CHIP8_FONT = []byte{
 	0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 }
 
+type inputFunc func() (byte, bool)
+
 type CHIP8 struct {
-	Registers [16]byte
-	I         uint16                     // Memory address register
-	Memory    [MEM_SIZE]byte             // 4 Kilobytes
-	Display   [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
-	Stack     models.Stack[uint16]       // Maximum amount of subroutines
-	PC        uint16
-	SP        uint16
-	DT        uint8 // Delay timer
-	ST        uint8 // Sound timer
+	// Private values
+	registers [16]byte
+	regI      uint16               // Memory address register
+	memory    [MEM_SIZE]byte       // 4 Kilobytes
+	stack     models.Stack[uint16] // Maximum amount of subroutines
+	regPC     uint16
+	regSP     uint16
+	regDT     uint8 // Delay timer
+	regST     uint8 // Sound timer
+
+	// Accesible values
+	Display [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
+
+	// Callbacks
+	callbackInput inputFunc
+}
+
+/* SETUP */
+
+func (c *CHIP8) SetInputCallback(fun inputFunc) {
+	c.callbackInput = fun
 }

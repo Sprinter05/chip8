@@ -16,21 +16,21 @@ var (
 /* PRIVATE */
 
 func (c *CHIP8) fetch() uint16 {
-	byte1 := c.Memory[c.PC]
-	byte2 := c.Memory[c.PC+1]
+	byte1 := c.memory[c.regPC]
+	byte2 := c.memory[c.regPC+1]
 
-	c.PC += 2
+	c.regPC += 2
 
 	return uint16(byte1)<<8 | uint16(byte2)
 }
 
 func (c *CHIP8) handleTimers() {
-	if c.DT > 0 {
-		c.DT--
+	if c.regDT > 0 {
+		c.regDT--
 	}
 
-	if c.ST > 0 {
-		c.ST--
+	if c.regST > 0 {
+		c.regST--
 	}
 }
 
@@ -115,13 +115,12 @@ func (c *CHIP8) LoadROM(program []byte) error {
 		return ErrTooBig
 	}
 
-	copy(c.Memory[PC_START:], program[:])
+	copy(c.memory[PC_START:], program[:])
 
 	return nil
 }
 
 func (c *CHIP8) Step() {
-	// TODO: handle inputs
 	c.handleTimers()
 
 	instr := c.fetch()
@@ -130,20 +129,23 @@ func (c *CHIP8) Step() {
 
 func (c *CHIP8) Reset() {
 	// Clear everything
-	c.I = 0x0
-	clear(c.Registers[:])
-	clear(c.Memory[:])
+	c.regI = 0x0
+	clear(c.registers[:])
+	clear(c.memory[:])
 	clear(c.Display[:][:])
 
 	// Clear stack
-	c.Stack = models.NewStack[uint16](STACK_SIZE)
+	c.stack = models.NewStack[uint16](STACK_SIZE)
 
 	// Clear pointers and timers
-	c.PC = uint16(PC_START)
-	c.SP = 0x0
-	c.DT = 0x0
-	c.ST = 0x0
+	c.regPC = uint16(PC_START)
+	c.regSP = 0x0
+	c.regDT = 0x0
+	c.regST = 0x0
+
+	// Clear functions
+	c.callbackInput = nil
 
 	// Load font onto memory
-	copy(c.Memory[FONT_OFFSET:], CHIP8_FONT)
+	copy(c.memory[FONT_OFFSET:], CHIP8_FONT)
 }

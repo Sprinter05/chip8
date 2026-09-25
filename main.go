@@ -38,7 +38,8 @@ func load(c *chip8.CHIP8) error {
 func main() {
 	// Create and setup the emulator
 	emu := new(chip8.CHIP8)
-	emu.Reset()
+	emu.Reset() // Resets all values
+	emu.SetInputCallback(inputCallback)
 	if err := load(emu); err != nil {
 		panic(err)
 	}
@@ -63,20 +64,8 @@ func main() {
 		// CPU
 		emu.Step()
 
-		// TEXTURE
-		// Draw onto a 64x32 texture
-		rl.BeginTextureMode(canvas)
-		rl.ClearBackground(rl.Black)
-		for x := range emu.Display {
-			for y, v := range emu.Display[x] {
-				if v {
-					rl.DrawPixel(int32(x), int32(y), rl.White)
-				}
-			}
-		}
-		rl.EndTextureMode()
-
 		// DISPLAY
+		drawOnTexture(canvas, emu)
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.Black)
 
