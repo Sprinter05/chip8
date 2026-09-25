@@ -48,60 +48,67 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 	// so we just do if-else
 	switch instr {
 	case 0x00E0:
-		c.instrClearScreen()
+		c.instr00E0()
 	case 0x00EE:
 		c.instrReturnSubroutine()
 	default:
-		switch instr &^ 0xFF0 {
-		case 0x5000:
-			c.instrSkipInstrEqualVXVY(varX, varY)
-		case 0x8000:
-			c.instrStoreVYinVX(varX, varY)
-		case 0x8001:
-			c.instrVXorVY(varX, varY)
-		case 0x8002:
-			c.instrVXandVY(varX, varY)
-		case 0x8003:
-			c.instrVXxorVY(varX, varY)
-		case 0x8004:
-			c.instrAddVYtoVX(varX, varY)
-		case 0x8005:
-			c.instrSubVYfromVX(varX, varY)
-		case 0x8006:
-			c.instrShiftVYright(varX, varY)
-		case 0x8007:
-			c.instrSubVXfromVYtoVX(varX, varY)
-		case 0x8008:
-			c.instrShiftVYleft(varX, varY)
-		case 0x9000:
-			c.instrSkipInstrNotEqualVXVY(varX, varY)
+		switch instr &^ 0x0F00 {
+		case 0xE09E:
+			c.instrEX9E(varX)
+		case 0xE0A1:
+			c.instrEXA1(varX)
 		default:
-			switch instr &^ 0x0FFF {
-			case 0x0000:
-				panic(ErrRunningOnEmu)
-			case 0x1000:
-				c.instrJump(address)
-			case 0x2000:
-				c.instrCallSubroutine(address)
-			case 0x3000:
-				c.instrSkipInstrEqualVX(varX, hexadecimal)
-			case 0x4000:
-				c.instrSkipInstrNotEqualVX(varX, hexadecimal)
-			case 0x6000:
-				c.instrSetVX(varX, hexadecimal)
-			case 0x7000:
-				c.instrAddVX(varX, hexadecimal)
-			case 0xA000:
-				c.instrSetI(address)
-			case 0xB000:
-				c.instrJumpToAddrByV0(address)
-			case 0xC000:
-				c.instrSetVXToRandAndMask(varX, hexadecimal)
-			case 0xD000:
-				c.instrDraw(varX, varY, nibble)
+			switch instr &^ 0x0FF0 {
+			case 0x5000:
+				c.instr5XY0(varX, varY)
+			case 0x8000:
+				c.instr8XY0(varX, varY)
+			case 0x8001:
+				c.instr8XY1(varX, varY)
+			case 0x8002:
+				c.instr8XY2(varX, varY)
+			case 0x8003:
+				c.instr8XY3(varX, varY)
+			case 0x8004:
+				c.instr8XY4(varX, varY)
+			case 0x8005:
+				c.instr8XY5(varX, varY)
+			case 0x8006:
+				c.instr8XY6(varX, varY)
+			case 0x8007:
+				c.instr8XY7(varX, varY)
+			case 0x800E:
+				c.instr8XYE(varX, varY)
+			case 0x9000:
+				c.instr9XY0(varX, varY)
 			default:
-				log.Printf("[INSTR] Not implemented: %x\n", instr)
-				panic(ErrNotImplemented)
+				switch instr &^ 0x0FFF {
+				case 0x0000:
+					panic(ErrRunningOnEmu)
+				case 0x1000:
+					c.instr1NNN(address)
+				case 0x2000:
+					c.instr2NNN(address)
+				case 0x3000:
+					c.instr3XNN(varX, hexadecimal)
+				case 0x4000:
+					c.instr4XNN(varX, hexadecimal)
+				case 0x6000:
+					c.instr6XNN(varX, hexadecimal)
+				case 0x7000:
+					c.instr7XNN(varX, hexadecimal)
+				case 0xA000:
+					c.instrANNN(address)
+				case 0xB000:
+					c.instrBNNN(address)
+				case 0xC000:
+					c.instrCXNN(varX, hexadecimal)
+				case 0xD000:
+					c.instrDXYN(varX, varY, nibble)
+				default:
+					log.Printf("[INSTR] Not implemented: %x\n", instr)
+					panic(ErrNotImplemented)
+				}
 			}
 		}
 	}
@@ -145,6 +152,7 @@ func (c *CHIP8) Reset() {
 
 	// Clear functions
 	c.callbackInput = nil
+	c.callbackListInput = nil
 
 	// Load font onto memory
 	copy(c.memory[FONT_OFFSET:], CHIP8_FONT)

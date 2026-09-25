@@ -31,6 +31,7 @@ var CHIP8_FONT = []byte{
 }
 
 type inputFunc func() (byte, bool)
+type inputListFunc func() ([]byte, bool)
 
 type CHIP8 struct {
 	// Private values
@@ -47,11 +48,13 @@ type CHIP8 struct {
 	Display [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
 
 	// Callbacks
-	callbackInput inputFunc
+	callbackInput     inputFunc
+	callbackListInput inputListFunc
 }
 
 /* SETUP */
 
-func (c *CHIP8) SetInputCallback(fun inputFunc) {
-	c.callbackInput = fun
+func (c *CHIP8) SetInputCallback(callback inputFunc, listCallback inputListFunc) {
+	c.callbackInput = callback
+	c.callbackListInput = listCallback
 }

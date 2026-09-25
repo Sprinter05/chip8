@@ -22,6 +22,17 @@ func inputCallback() (byte, bool) {
 	return 0x0, false
 }
 
+func inputListCallback() ([]byte, bool) {
+	list := make([]byte, 0, len(KB_KEYS))
+	for code, expected := range KB_KEYS {
+		if rl.IsKeyPressed(expected) {
+			list = append(list, byte(code))
+		}
+	}
+
+	return list, false
+}
+
 func drawOnTexture(canvas rl.RenderTexture2D, emu *chip8.CHIP8) {
 	rl.BeginTextureMode(canvas)
 	rl.ClearBackground(rl.Black)
