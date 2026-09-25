@@ -67,6 +67,14 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 			c.instrFX18(varX)
 		case 0xF01E:
 			c.instrFX1E(varX)
+		case 0xF029:
+			c.instrFX29(varX)
+		case 0xF033:
+			c.instrFX33(varX)
+		case 0xF055:
+			c.instrFX55(varX)
+		case 0xF065:
+			c.instrFX65(varX)
 		default:
 			switch instr &^ 0x0FF0 {
 			case 0x5000:

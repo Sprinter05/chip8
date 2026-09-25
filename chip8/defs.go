@@ -9,7 +9,8 @@ const DISPLAY_Y uint = 32
 const MEM_SIZE uint = 0x1000
 const STACK_SIZE uint = 16
 const PC_START uint = 0x200
-const FONT_OFFSET = 0x050
+const FONT_OFFSET uint = 0x050
+const FONT_CHAR_SIZE uint = 5
 
 var CHIP8_FONT = []byte{
 	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0

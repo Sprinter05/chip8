@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand/v2"
 	"slices"
+	"strconv"
 )
 
 var (
@@ -243,4 +244,36 @@ func (c *CHIP8) instrFX18(X uint8) {
 func (c *CHIP8) instrFX1E(X uint8) {
 	valX := c.registers[X]
 	c.regI += uint16(valX)
+}
+
+func (c *CHIP8) instrFX29(X uint8) {
+	valX := c.registers[X]
+	char := uint8(valX &^ 0xF0)
+
+	c.regI = uint16(FONT_OFFSET) + (uint16(char) * uint16(FONT_CHAR_SIZE))
+}
+
+func (c *CHIP8) instrFX33(X uint8) {
+	valX := c.registers[X]
+	numX := uint(valX)
+	numDigits := len(strconv.Itoa(int(numX)))
+
+	for i := numDigits - 1; i >= 0; i-- {
+		c.memory[int(c.regI)+i] = valX % 10
+		valX /= 10
+	}
+}
+
+func (c *CHIP8) instrFX55(X uint8) {
+	for i := 0; uint(i) <= uint(X); i++ {
+		val := c.registers[i]
+		c.memory[int(c.regI)+i] = val
+	}
+}
+
+func (c *CHIP8) instrFX65(X uint8) {
+	for i := 0; uint(i) <= uint(X); i++ {
+		val := c.memory[int(c.regI)+i]
+		c.registers[i] = val
+	}
 }
