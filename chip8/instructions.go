@@ -135,42 +135,42 @@ func (c *CHIP8) instr8XY4(X uint8, Y uint8) {
 	valX := c.registers[X]
 	valY := c.registers[Y]
 
+	c.registers[X] += valY
+
 	// Overflow detection
 	if valX+valY < valX {
 		c.registers[0xF] = 0x1
 	} else {
 		c.registers[0xF] = 0x0
 	}
-
-	c.registers[X] += valY
 }
 
 func (c *CHIP8) instr8XY5(X uint8, Y uint8) {
 	valX := c.registers[X]
 	valY := c.registers[Y]
 
+	c.registers[X] = valX - valY
+
 	// Borrow detection
-	if valX > valY {
+	if valX >= valY {
 		c.registers[0xF] = 0x1
 	} else {
 		c.registers[0xF] = 0x0
 	}
-
-	c.registers[X] = valX - valY
 }
 
 func (c *CHIP8) instr8XY7(X uint8, Y uint8) {
 	valX := c.registers[X]
 	valY := c.registers[Y]
 
+	c.registers[X] = valY - valX
+
 	// Borrow detection
-	if valY > valX {
+	if valY >= valX {
 		c.registers[0xF] = 0x1
 	} else {
 		c.registers[0xF] = 0x0
 	}
-
-	c.registers[X] = valY - valX
 }
 
 func (c *CHIP8) instr8XY6(X uint8, Y uint8) {
@@ -182,7 +182,7 @@ func (c *CHIP8) instr8XY6(X uint8, Y uint8) {
 func (c *CHIP8) instr8XYE(X uint8, Y uint8) {
 	valY := c.registers[Y]
 	c.registers[X] = valY << 1
-	c.registers[0xF] = valY &^ 0x7F
+	c.registers[0xF] = (valY &^ 0x7F) >> 7
 }
 
 func (c *CHIP8) instr9XY0(X uint8, Y uint8) {
