@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/Sprinter05/chip-8/chip8"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -24,6 +26,19 @@ var KB_KEYS_MAP = map[int32]byte{
 	rl.KeyV:     0xF,
 }
 
+func loadProgram(c *chip8.CHIP8) error {
+	f, err := os.ReadFile(fileROM)
+	if err != nil {
+		return err
+	}
+
+	if err := c.LoadROM(f); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func inputHandler() func() []byte {
 	return func() []byte {
 		keys := make([]byte, 0, len(KB_KEYS_MAP))
@@ -40,8 +55,9 @@ func inputHandler() func() []byte {
 func drawOnTexture(canvas rl.RenderTexture2D, emu *chip8.CHIP8) {
 	rl.BeginTextureMode(canvas)
 	rl.ClearBackground(rl.Black)
-	for x := range emu.Display {
-		for y, v := range emu.Display[x] {
+	display := emu.GetDisplay()
+	for x := range display {
+		for y, v := range display[x] {
 			if v {
 				rl.DrawPixel(int32(x), int32(y), rl.White)
 			}

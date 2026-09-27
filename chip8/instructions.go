@@ -7,71 +7,20 @@ import (
 	"slices"
 )
 
+/* ERRORS */
+
 var (
 	ErrInvalidStackManipulation = errors.New("invalid usage of subroutine stack")
 )
 
+/* INSTRUCTIONS */
+
 func (c *CHIP8) instr00E0() {
-	clear(c.Display[:][:])
+	clear(c.display[:][:])
 }
 
-func (c *CHIP8) instr1NNN(address uint16) {
-	c.regPC = address
-}
-
-func (c *CHIP8) instr6XNN(X uint8, val byte) {
-	c.registers[X] = val
-}
-
-func (c *CHIP8) instr7XNN(X uint8, val byte) {
-	c.registers[X] += val
-}
-
-func (c *CHIP8) instrANNN(address uint16) {
-	c.regI = address
-}
-
-func (c *CHIP8) instrDXYN(X uint8, Y uint8, nibble byte) {
-	initX := uint8(c.registers[X] % uint8(DISPLAY_X))
-	initY := uint8(c.registers[Y] % uint8(DISPLAY_Y))
-	posX := initX
-	posY := initY
-
-	// Set VF flag
-	c.registers[0xF] = 0x0
-
-	for _, s := range c.memory[c.regI : c.regI+uint16(nibble)] {
-		for i := 7; i >= 0; i-- { // byte size
-			pixel := (s >> i) &^ 0xFE
-
-			shouldBeOn := false
-			if pixel == 0x01 {
-				shouldBeOn = true
-			}
-
-			if c.Display[posX][posY] && shouldBeOn {
-				c.Display[posX][posY] = false
-				c.registers[0xF] = 0x01
-			} else if shouldBeOn {
-				c.Display[posX][posY] = true
-			}
-
-			posX++
-			if posX >= uint8(DISPLAY_X) {
-				break
-			}
-		}
-
-		posY++
-		posX = initX
-		if posY >= uint8(DISPLAY_Y) {
-			break
-		}
-	}
-}
-
-func (c *CHIP8) instr2NNN(addr uint16) {
-	err := c.stack.Push(c.regPC)
+func (c *CHIP8) instr00EE() {
+	addr, err := c.stack.Pop()
 	if err != nil {
 		panic(ErrInvalidStackManipulation)
 	}
@@ -79,8 +28,12 @@ func (c *CHIP8) instr2NNN(addr uint16) {
 	c.regPC = addr
 }
 
-func (c *CHIP8) instr00EE() {
-	addr, err := c.stack.Pop()
+func (c *CHIP8) instr1NNN(address uint16) {
+	c.regPC = address
+}
+
+func (c *CHIP8) instr2NNN(addr uint16) {
+	err := c.stack.Push(c.regPC)
 	if err != nil {
 		panic(ErrInvalidStackManipulation)
 	}
@@ -111,6 +64,14 @@ func (c *CHIP8) instr5XY0(X uint8, Y uint8) {
 	if valX == valY {
 		c.regPC += 2
 	}
+}
+
+func (c *CHIP8) instr6XNN(X uint8, val byte) {
+	c.registers[X] = val
+}
+
+func (c *CHIP8) instr7XNN(X uint8, val byte) {
+	c.registers[X] += val
 }
 
 func (c *CHIP8) instr8XY0(X uint8, Y uint8) {
@@ -193,6 +154,10 @@ func (c *CHIP8) instr9XY0(X uint8, Y uint8) {
 	}
 }
 
+func (c *CHIP8) instrANNN(address uint16) {
+	c.regI = address
+}
+
 func (c *CHIP8) instrBNNN(addr uint16) {
 	c.regPC = addr + uint16(c.registers[0x0])
 }
@@ -200,6 +165,45 @@ func (c *CHIP8) instrBNNN(addr uint16) {
 func (c *CHIP8) instrCXNN(X uint8, hex byte) {
 	num := uint8(rand.UintN(math.MaxUint8 + 1))
 	c.registers[X] = num & hex
+}
+
+func (c *CHIP8) instrDXYN(X uint8, Y uint8, nibble byte) {
+	initX := uint8(c.registers[X] % uint8(DISPLAY_X))
+	initY := uint8(c.registers[Y] % uint8(DISPLAY_Y))
+	posX := initX
+	posY := initY
+
+	// Set VF flag
+	c.registers[0xF] = 0x0
+
+	for _, s := range c.memory[c.regI : c.regI+uint16(nibble)] {
+		for i := 7; i >= 0; i-- { // byte size
+			pixel := (s >> i) &^ 0xFE
+
+			shouldBeOn := false
+			if pixel == 0x01 {
+				shouldBeOn = true
+			}
+
+			if c.display[posX][posY] && shouldBeOn {
+				c.display[posX][posY] = false
+				c.registers[0xF] = 0x01
+			} else if shouldBeOn {
+				c.display[posX][posY] = true
+			}
+
+			posX++
+			if posX >= uint8(DISPLAY_X) {
+				break
+			}
+		}
+
+		posY++
+		posX = initX
+		if posY >= uint8(DISPLAY_Y) {
+			break
+		}
+	}
 }
 
 func (c *CHIP8) instrEX9E(X uint8) {

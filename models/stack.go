@@ -5,14 +5,20 @@ import (
 	"slices"
 )
 
-var ErrMaxCapacity = errors.New("Max capacity reached")
-var ErrEmpty = errors.New("Stack is empty")
+/* DEFINITIONS */
+
+var (
+	ErrMaxCapacity = errors.New("Max capacity reached")
+	ErrEmpty       = errors.New("Stack is empty")
+)
 
 type Stack[T any] struct {
 	data []T
 	max  uint
 	last uint
 }
+
+/* FUNCTIONS */
 
 func NewStack[T any](size uint) Stack[T] {
 	return Stack[T]{

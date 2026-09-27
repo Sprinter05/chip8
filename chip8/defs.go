@@ -4,6 +4,8 @@ import (
 	"github.com/Sprinter05/chip-8/models"
 )
 
+/* DEFINITIONS */
+
 const DISPLAY_X uint = 64
 const DISPLAY_Y uint = 32
 const MEM_SIZE uint = 0x1000
@@ -32,22 +34,32 @@ var CHIP8_FONT = []byte{
 }
 
 type CHIP8 struct {
-	// Private values
-	registers   [16]byte
-	regI        uint16               // Memory address register
-	memory      [MEM_SIZE]byte       // 4 Kilobytes
-	stack       models.Stack[uint16] // Maximum amount of subroutines
-	regPC       uint16
-	regSP       uint16
-	regDT       uint8 // Delay timer
-	regST       uint8 // Sound timer
-	keysPressed []byte
+	// Machine values
+	registers [16]byte
+	regI      uint16                     // Memory address register
+	memory    [MEM_SIZE]byte             // 4 Kilobytes
+	stack     models.Stack[uint16]       // Maximum amount of subroutines
+	regPC     uint16                     // Program Counter
+	regSP     uint16                     // Stack Pointer
+	regDT     uint8                      // Delay Timer
+	regST     uint8                      // Sound Timer
+	display   [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
 
-	// Accesible values
-	Display   [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
-	InputFunc func() []byte              // Function that returns keys pressed that frame
+	// State values
+	keysPressed []byte        // Keys held down that frame
+	inputFunc   func() []byte // Function that returns keys pressed that frame
 }
+
+/* SETUP FUNCTIONS */
 
 func (c *CHIP8) GetSoundTimer() uint {
 	return uint(c.regST)
+}
+
+func (c *CHIP8) GetDisplay() [DISPLAY_X][DISPLAY_Y]bool {
+	return c.display
+}
+
+func (c *CHIP8) SetInputFunction(fun func() []byte) {
+	c.inputFunc = fun
 }

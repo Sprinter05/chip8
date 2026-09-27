@@ -146,7 +146,7 @@ func (c *CHIP8) LoadROM(program []byte) error {
 }
 
 func (c *CHIP8) Step() {
-	keys := c.InputFunc()
+	keys := c.inputFunc()
 	c.keysPressed = keys
 
 	c.handleTimers()
@@ -160,7 +160,7 @@ func (c *CHIP8) Reset() {
 	c.regI = 0x0
 	clear(c.registers[:])
 	clear(c.memory[:])
-	clear(c.Display[:][:])
+	clear(c.display[:][:])
 
 	// Clear stack
 	c.stack = models.NewStack[uint16](STACK_SIZE)
@@ -172,7 +172,7 @@ func (c *CHIP8) Reset() {
 	c.regST = 0x0
 
 	// Clear functions
-	c.InputFunc = nil
+	c.inputFunc = nil
 
 	// Load font onto memory
 	copy(c.memory[FONT_OFFSET:], CHIP8_FONT)
