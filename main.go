@@ -12,6 +12,9 @@ const FPS float64 = 60.0
 const FRAMETIME_US float64 = 1000000.0 / FPS // microseconds
 const WINDOW_WIDTH = 640
 const WINDOW_HEIGHT = 320
+const SAMPLE_RATE = 48000
+const AUDIO_BUFFER_SIZE = 4096
+const BUZZER_FREQ = 440
 
 var fileROM string
 
@@ -47,6 +50,15 @@ func main() {
 	rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "CHIP8 Interpreter")
 	defer rl.CloseWindow()
 
+	// Set audio buffer
+	rl.InitAudioDevice()
+	rl.SetAudioStreamBufferSizeDefault(AUDIO_BUFFER_SIZE)
+	stream := rl.LoadAudioStream(SAMPLE_RATE, 32, 1)
+	rl.PlayAudioStream(stream)
+	rl.SetAudioStreamCallback(stream, audioCallback(emu))
+	defer rl.UnloadAudioStream(stream)
+	defer rl.CloseAudioDevice()
+
 	// Create texture for emulator display
 	canvas := rl.LoadRenderTexture(int32(chip8.DISPLAY_X), int32(chip8.DISPLAY_Y))
 	defer rl.UnloadRenderTexture(canvas)
@@ -56,6 +68,10 @@ func main() {
 	for !rl.WindowShouldClose() {
 		// CPU
 		emu.Step()
+
+		// AUDIO
+		if emu.GetSoundTimer() > 0 {
+		}
 
 		// DISPLAY
 		drawOnTexture(canvas, emu)

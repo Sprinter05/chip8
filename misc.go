@@ -49,3 +49,25 @@ func drawOnTexture(canvas rl.RenderTexture2D, emu *chip8.CHIP8) {
 	}
 	rl.EndTextureMode()
 }
+
+func audioCallback(c *chip8.CHIP8) rl.AudioCallback {
+	index := 0
+	return func(data []float32, frames int) {
+		if c.GetSoundTimer() <= 0 {
+			return
+		}
+
+		wavelength := SAMPLE_RATE / BUZZER_FREQ
+
+		for i := range frames {
+			if index < wavelength/2 {
+				data[i] = 1.0
+			} else {
+				data[i] = -1.0
+			}
+
+			index = (index + 1) % wavelength
+		}
+
+	}
+}

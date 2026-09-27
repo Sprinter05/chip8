@@ -5,7 +5,6 @@ import (
 	"math"
 	"math/rand/v2"
 	"slices"
-	"strconv"
 )
 
 var (
@@ -256,10 +255,8 @@ func (c *CHIP8) instrFX29(X uint8) {
 
 func (c *CHIP8) instrFX33(X uint8) {
 	valX := c.registers[X]
-	numX := uint(valX)
-	numDigits := len(strconv.Itoa(int(numX)))
 
-	for i := numDigits - 1; i >= 0; i-- {
+	for i := 3 - 1; i >= 0; i-- {
 		c.memory[int(c.regI)+i] = valX % 10
 		valX /= 10
 	}

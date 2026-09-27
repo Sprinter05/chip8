@@ -47,3 +47,7 @@ type CHIP8 struct {
 	Display   [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
 	InputFunc func() []byte              // Function that returns keys pressed that frame
 }
+
+func (c *CHIP8) GetSoundTimer() uint {
+	return uint(c.regST)
+}
