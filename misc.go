@@ -39,17 +39,21 @@ var KB_KEYS_MAP = map[int32]byte{
 
 /* MISCELLANEOUS FUNCTIONS */
 
-func loadProgram(c *chip8.CHIP8) error {
+func defaultState() (*chip8.CHIP8, error) {
+	emu := new(chip8.CHIP8)
+	emu.Reset() // Resets all values
+	emu.SetInputFunction(inputHandler())
+
 	f, err := os.ReadFile(fileROM)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := c.LoadROM(f); err != nil {
-		return err
+	if err := emu.LoadROM(f); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return emu, nil
 }
 
 func inputHandler() func() []byte {
@@ -101,17 +105,18 @@ func audioCallback(c *chip8.CHIP8, freq *float32) rl.AudioCallback {
 	}
 }
 
-func renderInterface(fps *float32, buzzer *float32) {
+func renderInterface(emu *chip8.CHIP8, fps *float32, buzzer *float32) {
 	// FPS Control
 	gui.Slider(
 		rl.NewRectangle(GUI_PADDING_X, WINDOW_HEIGHT+GUI_PADDING_Y, 120, 30),
 		"FPS", fmt.Sprintf("%2.2f", *fps),
 		fps, MIN_FPS, MAX_FPS,
 	)
-	if gui.Button(
+	butR1 := gui.Button(
 		rl.NewRectangle(GUI_PADDING_X+165, WINDOW_HEIGHT+GUI_PADDING_Y, 30, 30),
 		"#77#",
-	) {
+	)
+	if butR1 {
 		*fps = DEFAULT_FPS
 	}
 
@@ -121,10 +126,24 @@ func renderInterface(fps *float32, buzzer *float32) {
 		"Buzzer", fmt.Sprintf("%2.0f Hz", *buzzer),
 		buzzer, MIN_BUZZER_FREQ, MAX_BUZZER_FREQ,
 	)
-	if gui.Button(
+	butR2 := gui.Button(
 		rl.NewRectangle(GUI_PADDING_X+165, WINDOW_HEIGHT+GUI_PADDING_Y+40, 30, 30),
 		"#77#",
-	) {
+	)
+	if butR2 {
 		*buzzer = DEFAULT_BUZZER_FREQ
 	}
+
+	// Pause
+	pauseText := "#132#"
+	if emu.IsPaused() {
+		pauseText = "#131#"
+	}
+	if gui.Button(
+		rl.NewRectangle(GUI_PADDING_X+255, WINDOW_HEIGHT+GUI_PADDING_Y, 70, 70),
+		pauseText,
+	) {
+		emu.TogglePause()
+	}
+
 }

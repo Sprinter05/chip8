@@ -46,6 +46,7 @@ type CHIP8 struct {
 	display   [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
 
 	// State values
+	paused      bool          // controls if its paused
 	keysPressed []byte        // Keys held down that frame
 	inputFunc   func() []byte // Function that returns keys pressed that frame
 }

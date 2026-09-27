@@ -136,6 +136,14 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 
 /* PUBLIC */
 
+func (c *CHIP8) IsPaused() bool {
+	return c.paused
+}
+
+func (c *CHIP8) TogglePause() {
+	c.paused = !c.paused
+}
+
 func (c *CHIP8) LoadROM(program []byte) error {
 	// Cant be bigger than memory size and base address
 	if len(program) > (int(MEM_SIZE) - int(PC_START)) {
@@ -148,6 +156,10 @@ func (c *CHIP8) LoadROM(program []byte) error {
 }
 
 func (c *CHIP8) Step() {
+	if c.paused {
+		return
+	}
+
 	keys := c.inputFunc()
 	c.keysPressed = keys
 
@@ -173,7 +185,9 @@ func (c *CHIP8) Reset() {
 	c.regDT = 0x0
 	c.regST = 0x0
 
-	// Clear functions
+	// Clear state
+	c.paused = false
+	clear(c.keysPressed)
 	c.inputFunc = nil
 
 	// Load font onto memory

@@ -31,10 +31,8 @@ func init() {
 
 func main() {
 	// Create and setup the emulator
-	emu := new(chip8.CHIP8)
-	emu.Reset() // Resets all values
-	emu.SetInputFunction(inputHandler())
-	if err := loadProgram(emu); err != nil {
+	emu, err := defaultState()
+	if err != nil {
 		panic(err)
 	}
 
@@ -80,11 +78,11 @@ func main() {
 
 		// GUI
 		oldFPS := fps
-		renderInterface(&fps, &freq)
+		renderInterface(emu, &fps, &freq)
 
 		rl.EndDrawing()
 
-		// VALUES
+		// STATE
 		if fps != oldFPS {
 			rl.SetTargetFPS(int32(fps))
 		}
