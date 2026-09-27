@@ -188,7 +188,6 @@ func (c *CHIP8) Reset() {
 	// Clear state
 	c.paused = false
 	clear(c.keysPressed)
-	c.inputFunc = nil
 
 	// Load font onto memory
 	copy(c.memory[FONT_OFFSET:], CHIP8_FONT)

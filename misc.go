@@ -7,6 +7,7 @@ import (
 	"github.com/Sprinter05/chip-8/chip8"
 	gui "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
+	zenity "github.com/ncruces/zenity"
 )
 
 /* DEFINITIONS */
@@ -39,21 +40,17 @@ var KB_KEYS_MAP = map[int32]byte{
 
 /* MISCELLANEOUS FUNCTIONS */
 
-func defaultState() (*chip8.CHIP8, error) {
-	emu := new(chip8.CHIP8)
-	emu.Reset() // Resets all values
-	emu.SetInputFunction(inputHandler())
-
+func loadProgram(emu *chip8.CHIP8) error {
 	f, err := os.ReadFile(fileROM)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := emu.LoadROM(f); err != nil {
-		return nil, err
+		return err
 	}
 
-	return emu, nil
+	return nil
 }
 
 func inputHandler() func() []byte {
@@ -107,43 +104,82 @@ func audioCallback(c *chip8.CHIP8, freq *float32) rl.AudioCallback {
 
 func renderInterface(emu *chip8.CHIP8, fps *float32, buzzer *float32) {
 	// FPS Control
+	gui.SetIconScale(1)
+	gui.SetTooltip("Set target FPS")
+	gui.SetStyle(gui.SLIDER, gui.TEXT_SIZE, 5)
 	gui.Slider(
 		rl.NewRectangle(GUI_PADDING_X, WINDOW_HEIGHT+GUI_PADDING_Y, 120, 30),
 		"FPS", fmt.Sprintf("%2.2f", *fps),
 		fps, MIN_FPS, MAX_FPS,
 	)
 	butR1 := gui.Button(
-		rl.NewRectangle(GUI_PADDING_X+165, WINDOW_HEIGHT+GUI_PADDING_Y, 30, 30),
-		"#77#",
+		rl.NewRectangle(GUI_PADDING_X+200, WINDOW_HEIGHT+GUI_PADDING_Y, 30, 30),
+		"#74#",
 	)
 	if butR1 {
 		*fps = DEFAULT_FPS
 	}
 
 	// Buzzer Control
+	gui.SetIconScale(1)
+	gui.SetTooltip("Set buzzer tone frequency")
+	gui.SetStyle(gui.SLIDER, gui.TEXT_SIZE, 5)
 	gui.Slider(
 		rl.NewRectangle(GUI_PADDING_X, WINDOW_HEIGHT+GUI_PADDING_Y+40, 120, 30),
 		"Buzzer", fmt.Sprintf("%2.0f Hz", *buzzer),
 		buzzer, MIN_BUZZER_FREQ, MAX_BUZZER_FREQ,
 	)
 	butR2 := gui.Button(
-		rl.NewRectangle(GUI_PADDING_X+165, WINDOW_HEIGHT+GUI_PADDING_Y+40, 30, 30),
-		"#77#",
+		rl.NewRectangle(GUI_PADDING_X+200, WINDOW_HEIGHT+GUI_PADDING_Y+40, 30, 30),
+		"#74#",
 	)
 	if butR2 {
 		*buzzer = DEFAULT_BUZZER_FREQ
 	}
 
 	// Pause
+	gui.SetIconScale(4)
+	gui.SetTooltip("Pause execution")
 	pauseText := "#132#"
 	if emu.IsPaused() {
 		pauseText = "#131#"
 	}
 	if gui.Button(
-		rl.NewRectangle(GUI_PADDING_X+255, WINDOW_HEIGHT+GUI_PADDING_Y, 70, 70),
+		rl.NewRectangle(GUI_PADDING_X+285, WINDOW_HEIGHT+GUI_PADDING_Y, 70, 70),
 		pauseText,
 	) {
 		emu.TogglePause()
 	}
 
+	// Reset
+	gui.SetIconScale(4)
+	gui.SetTooltip("Reset program")
+	if gui.Button(
+		rl.NewRectangle(GUI_PADDING_X+365, WINDOW_HEIGHT+GUI_PADDING_Y, 70, 70),
+		"#76#",
+	) {
+		emu.Reset()
+		if err := loadProgram(emu); err != nil {
+			panic(err)
+		}
+	}
+
+	// Load
+	gui.SetIconScale(4)
+	gui.SetTooltip("Load ROM")
+	if gui.Button(
+		rl.NewRectangle(GUI_PADDING_X+445, WINDOW_HEIGHT+GUI_PADDING_Y, 70, 70),
+		"#5#",
+	) {
+		file, err := zenity.SelectFile()
+		if err != nil {
+			panic(err)
+		}
+
+		fileROM = file
+		emu.Reset()
+		if err := loadProgram(emu); err != nil {
+			panic(err)
+		}
+	}
 }

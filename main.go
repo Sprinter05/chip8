@@ -13,7 +13,7 @@ import (
 const WINDOW_WIDTH = 640
 const WINDOW_HEIGHT = 320
 const GUI_HEIGHT = 100
-const GUI_PADDING_X = 50
+const GUI_PADDING_X = 80
 const GUI_PADDING_Y = 15
 const AUDIO_BUFFER_SIZE = 4096
 const SAMPLE_RATE = 44100
@@ -31,8 +31,10 @@ func init() {
 
 func main() {
 	// Create and setup the emulator
-	emu, err := defaultState()
-	if err != nil {
+	emu := new(chip8.CHIP8)
+	emu.SetInputFunction(inputHandler())
+	emu.Reset() // Resets all values
+	if err := loadProgram(emu); err != nil {
 		panic(err)
 	}
 
@@ -44,6 +46,7 @@ func main() {
 	rl.SetConfigFlags(rl.FlagVsyncHint | rl.FlagWindowResizable)
 	rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT+GUI_HEIGHT, "CHIP8 Interpreter")
 	rl.SetTargetFPS(int32(fps))
+	gui.SetStyle(gui.DEFAULT, gui.TEXT_SIZE, 20)
 	defer rl.CloseWindow()
 
 	// Set audio stream
