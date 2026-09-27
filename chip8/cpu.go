@@ -156,7 +156,7 @@ func (c *CHIP8) LoadROM(program []byte) error {
 }
 
 func (c *CHIP8) Step() {
-	if c.paused {
+	if c.paused || c.memory[PC_START] == 0x0 {
 		return
 	}
 

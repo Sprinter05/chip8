@@ -14,7 +14,7 @@ const WINDOW_WIDTH = 640
 const WINDOW_HEIGHT = 320
 const GUI_HEIGHT = 100
 const GUI_PADDING_X = 80
-const GUI_PADDING_Y = 15
+const GUI_PADDING_Y = 10
 const AUDIO_BUFFER_SIZE = 4096
 const SAMPLE_RATE = 44100
 
@@ -40,6 +40,7 @@ func main() {
 
 	// Controllable values
 	fps := float32(DEFAULT_FPS)
+	vol := float32(DEFAULT_VOLUME)
 	freq := float32(DEFAULT_BUZZER_FREQ)
 
 	// Initialise raylib
@@ -55,6 +56,7 @@ func main() {
 	stream := rl.LoadAudioStream(SAMPLE_RATE, 32, 1)
 	rl.PlayAudioStream(stream)
 	rl.SetAudioStreamCallback(stream, audioCallback(emu, &freq))
+	rl.SetAudioStreamVolume(stream, vol)
 	defer rl.UnloadAudioStream(stream)
 	defer rl.CloseAudioDevice()
 
@@ -81,13 +83,18 @@ func main() {
 
 		// GUI
 		oldFPS := fps
-		renderInterface(emu, &fps, &freq)
+		oldVol := vol
+		renderInterface(emu, &fps, &vol, &freq)
 
 		rl.EndDrawing()
 
 		// STATE
 		if fps != oldFPS {
 			rl.SetTargetFPS(int32(fps))
+		}
+
+		if vol != oldVol {
+			rl.SetAudioStreamVolume(stream, vol/500)
 		}
 	}
 }
