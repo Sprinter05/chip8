@@ -31,31 +31,19 @@ var CHIP8_FONT = []byte{
 	0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 }
 
-type inputFunc func() (byte, bool)
-type inputListFunc func() []byte
-
 type CHIP8 struct {
 	// Private values
-	registers [16]byte
-	regI      uint16               // Memory address register
-	memory    [MEM_SIZE]byte       // 4 Kilobytes
-	stack     models.Stack[uint16] // Maximum amount of subroutines
-	regPC     uint16
-	regSP     uint16
-	regDT     uint8 // Delay timer
-	regST     uint8 // Sound timer
+	registers   [16]byte
+	regI        uint16               // Memory address register
+	memory      [MEM_SIZE]byte       // 4 Kilobytes
+	stack       models.Stack[uint16] // Maximum amount of subroutines
+	regPC       uint16
+	regSP       uint16
+	regDT       uint8 // Delay timer
+	regST       uint8 // Sound timer
+	keysPressed []byte
 
 	// Accesible values
-	Display [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
-
-	// Callbacks
-	callbackInput     inputFunc
-	callbackListInput inputListFunc
-}
-
-/* SETUP */
-
-func (c *CHIP8) SetInputCallback(callback inputFunc, listCallback inputListFunc) {
-	c.callbackInput = callback
-	c.callbackListInput = listCallback
+	Display   [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
+	InputFunc func() []byte              // Function that returns keys pressed that frame
 }

@@ -12,25 +12,17 @@ var KB_KEYS = []int32{
 	rl.KeyZ, rl.KeyX, rl.KeyC, rl.KeyV,
 }
 
-func inputCallback() (byte, bool) {
-	for code, expected := range KB_KEYS {
-		if rl.IsKeyReleased(expected) {
-			return byte(code), true
+func handleInput() func() []byte {
+	return func() []byte {
+		keys := make([]byte, 0, len(KB_KEYS))
+		for code, expected := range KB_KEYS {
+			if rl.IsKeyPressed(expected) {
+				keys = append(keys, byte(code))
+			}
 		}
+
+		return keys
 	}
-
-	return 0x0, false
-}
-
-func inputListCallback() []byte {
-	list := make([]byte, 0, len(KB_KEYS))
-	for code, expected := range KB_KEYS {
-		if rl.IsKeyPressed(expected) {
-			list = append(list, byte(code))
-		}
-	}
-
-	return list
 }
 
 func drawOnTexture(canvas rl.RenderTexture2D, emu *chip8.CHIP8) {

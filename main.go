@@ -39,7 +39,7 @@ func main() {
 	// Create and setup the emulator
 	emu := new(chip8.CHIP8)
 	emu.Reset() // Resets all values
-	emu.SetInputCallback(inputCallback, inputListCallback)
+	emu.InputFunc = handleInput()
 	if err := load(emu); err != nil {
 		panic(err)
 	}

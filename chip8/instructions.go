@@ -80,7 +80,7 @@ func (c *CHIP8) instr2NNN(addr uint16) {
 	c.regPC = addr
 }
 
-func (c *CHIP8) instrReturnSubroutine() {
+func (c *CHIP8) instr00EE() {
 	addr, err := c.stack.Pop()
 	if err != nil {
 		panic(ErrInvalidStackManipulation)
@@ -205,18 +205,16 @@ func (c *CHIP8) instrCXNN(X uint8, hex byte) {
 
 func (c *CHIP8) instrEX9E(X uint8) {
 	valX := c.registers[X]
-	keys := c.callbackListInput()
 
-	if slices.Contains(keys, valX) {
+	if slices.Contains(c.keysPressed, valX) {
 		c.regPC += 2
 	}
 }
 
 func (c *CHIP8) instrEXA1(X uint8) {
 	valX := c.registers[X]
-	keys := c.callbackListInput()
 
-	if !slices.Contains(keys, valX) {
+	if !slices.Contains(c.keysPressed, valX) {
 		c.regPC += 2
 	}
 }
@@ -226,13 +224,12 @@ func (c *CHIP8) instrFX07(X uint8) {
 }
 
 func (c *CHIP8) instrFX0A(X uint8) {
-	key, pressed := c.callbackInput()
-	if !pressed {
+	if len(c.keysPressed) == 0 {
 		c.regPC -= 2
 		return
 	}
 
-	c.registers[X] = key
+	c.registers[X] = c.keysPressed[0]
 }
 
 func (c *CHIP8) instrFX15(X uint8) {

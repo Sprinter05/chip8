@@ -50,7 +50,7 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 	case 0x00E0:
 		c.instr00E0()
 	case 0x00EE:
-		c.instrReturnSubroutine()
+		c.instr00EE()
 	default:
 		switch instr &^ 0x0F00 {
 		case 0xE09E:
@@ -146,6 +146,9 @@ func (c *CHIP8) LoadROM(program []byte) error {
 }
 
 func (c *CHIP8) Step() {
+	keys := c.InputFunc()
+	copy(c.keysPressed, keys)
+
 	c.handleTimers()
 
 	instr := c.fetch()
@@ -169,8 +172,7 @@ func (c *CHIP8) Reset() {
 	c.regST = 0x0
 
 	// Clear functions
-	c.callbackInput = nil
-	c.callbackListInput = nil
+	c.InputFunc = nil
 
 	// Load font onto memory
 	copy(c.memory[FONT_OFFSET:], CHIP8_FONT)
