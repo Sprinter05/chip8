@@ -222,7 +222,7 @@ func renderInterface(emu *chip8.CHIP8, fps *float32, volume *float32, buzzer *fl
 	// Pause
 	gui.SetIconScale(GUI_ICON_SIZE)
 	pauseText := "#132#"
-	if emu.IsPaused() {
+	if emu.GetPaused() {
 		pauseText = "#131#"
 	}
 	if gui.Button(

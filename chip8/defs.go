@@ -45,6 +45,9 @@ type CHIP8 struct {
 	regST     uint8                      // Sound Timer
 	display   [DISPLAY_X][DISPLAY_Y]bool // Black or white pixels
 
+	// Quirks
+	quirk1 bool // FX55 and FX66 increment the I register
+
 	// State values
 	paused      bool          // controls if its paused
 	keysPressed []byte        // Keys held down that frame
@@ -62,10 +65,19 @@ func (c *CHIP8) GetDisplay() [DISPLAY_X][DISPLAY_Y]bool {
 	return c.display
 }
 
+func (c *CHIP8) GetPaused() bool {
+	return c.paused
+}
+
 func (c *CHIP8) SetInputFunction(fun func() []byte) {
 	c.inputFunc = fun
 }
 
 func (c *CHIP8) SetKeyFunction(fun func() byte) {
 	c.keyFunc = fun
+}
+
+// Check type definiticon comments for more info
+func (c *CHIP8) SetQuirks(quirk1 bool) {
+	c.quirk1 = quirk1
 }

@@ -136,10 +136,6 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 
 /* PUBLIC */
 
-func (c *CHIP8) IsPaused() bool {
-	return c.paused
-}
-
 func (c *CHIP8) TogglePause() {
 	c.paused = !c.paused
 }

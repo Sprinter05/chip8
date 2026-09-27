@@ -19,9 +19,11 @@ const SAMPLE_RATE = 44100
 /* FLAGS */
 
 var fileROM string
+var quirk1 bool
 
 func init() {
 	flag.StringVar(&fileROM, "rom", "rom.ch8", "ROM file to open")
+	flag.BoolVar(&quirk1, "quirk1", false, "Both FX55 and FX65 increment the I register")
 	flag.Parse()
 }
 
@@ -32,6 +34,7 @@ func main() {
 	emu := new(chip8.CHIP8)
 	emu.SetInputFunction(inputHandler())
 	emu.SetKeyFunction(keyHandler())
+	emu.SetQuirks(quirk1)
 	emu.Reset() // Resets all values
 	if err := loadProgram(emu); err != nil {
 		panic(err)

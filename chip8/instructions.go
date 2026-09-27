@@ -80,14 +80,20 @@ func (c *CHIP8) instr8XY0(X uint8, Y uint8) {
 }
 
 func (c *CHIP8) instr8XY1(X uint8, Y uint8) {
+	c.registers[0xF] = 0x0
+
 	c.registers[X] |= c.registers[Y]
 }
 
 func (c *CHIP8) instr8XY2(X uint8, Y uint8) {
+	c.registers[0xF] = 0x0
+
 	c.registers[X] &= c.registers[Y]
 }
 
 func (c *CHIP8) instr8XY3(X uint8, Y uint8) {
+	c.registers[0xF] = 0x0
+
 	c.registers[X] ^= c.registers[Y]
 }
 
@@ -272,11 +278,19 @@ func (c *CHIP8) instrFX55(X uint8) {
 		val := c.registers[i]
 		c.memory[int(c.regI)+i] = val
 	}
+
+	if c.quirk1 {
+		c.regI += uint16(X)
+	}
 }
 
 func (c *CHIP8) instrFX65(X uint8) {
 	for i := 0; uint(i) <= uint(X); i++ {
 		val := c.memory[int(c.regI)+i]
 		c.registers[i] = val
+	}
+
+	if c.quirk1 {
+		c.regI += uint16(X)
 	}
 }
