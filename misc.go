@@ -12,6 +12,7 @@ import (
 
 /* DEFINITIONS */
 
+// VALUES
 const MIN_FPS = 30
 const MAX_FPS = 960
 const DEFAULT_FPS = 60
@@ -21,6 +22,21 @@ const DEFAULT_VOLUME = 30
 const MIN_BUZZER_FREQ = 400
 const MAX_BUZZER_FREQ = 1500
 const DEFAULT_BUZZER_FREQ = 440
+
+// GUI
+const GUI_HEIGHT = 100
+const GUI_SLIDER_PADDING_X = 90
+const GUI_BUTTON_PADDING_X = 90
+const GUI_SLIDER_PADDING_Y = 10
+const GUI_BUTTON_PADDING_Y = 20
+const GUI_SLIDER_SEPARATION = 30
+const GUI_BUTTON_SEPARATION = 70
+const GUI_SLIDER_RESET_OFFSET = 200
+const GUI_SLIDER_SIZE = 20
+const GUI_SLIDER_LENGTH = 120
+const GUI_BUTTON_SIZE = 60
+const GUI_RESET_ICON_SIZE = 1
+const GUI_ICON_SIZE = 3
 
 var KB_KEYS_MAP = map[int32]byte{
 	rl.KeyOne:   0x1,
@@ -59,6 +75,18 @@ func loadProgram(emu *chip8.CHIP8) error {
 	}
 
 	return nil
+}
+
+func keyHandler() func() byte {
+	return func() byte {
+		code := rl.GetKeyPressed()
+		hex, exists := KB_KEYS_MAP[code]
+		if code == 0x0 || !exists {
+			return 0x0
+		}
+
+		return hex
+	}
 }
 
 func inputHandler() func() []byte {
@@ -110,70 +138,109 @@ func audioCallback(c *chip8.CHIP8, freq *float32) rl.AudioCallback {
 	}
 }
 
+func checkInterfaceToggle(show bool) bool {
+	if rl.IsKeyPressed(rl.KeySpace) {
+		if show {
+			rl.SetWindowSize(rl.GetScreenWidth(), rl.GetScreenHeight()-GUI_HEIGHT)
+		}
+
+		if !show {
+			rl.SetWindowSize(rl.GetScreenWidth(), rl.GetScreenHeight()+GUI_HEIGHT)
+		}
+
+		return !show
+	}
+
+	return show
+}
+
 func renderInterface(emu *chip8.CHIP8, fps *float32, volume *float32, buzzer *float32) {
+	width := float32(rl.GetScreenWidth())
+	height := float32(rl.GetScreenHeight() - GUI_HEIGHT)
+
+	/* SLIDERS */
+
 	// FPS Control
-	gui.SetIconScale(1)
+	gui.SetIconScale(GUI_RESET_ICON_SIZE)
 	gui.Slider(
-		rl.NewRectangle(GUI_PADDING_X, WINDOW_HEIGHT+GUI_PADDING_Y, 120, 20),
-		"FPS", fmt.Sprintf("%2.2f", *fps),
+		rl.NewRectangle(
+			GUI_SLIDER_PADDING_X, height+GUI_SLIDER_PADDING_Y,
+			GUI_SLIDER_LENGTH, GUI_SLIDER_SIZE,
+		), "FPS", fmt.Sprintf("%2.2f", *fps),
 		fps, MIN_FPS, MAX_FPS,
 	)
 	butR1 := gui.Button(
-		rl.NewRectangle(GUI_PADDING_X+200, WINDOW_HEIGHT+GUI_PADDING_Y, 20, 20),
-		"#74#",
+		rl.NewRectangle(
+			GUI_SLIDER_PADDING_X+GUI_SLIDER_RESET_OFFSET, height+GUI_SLIDER_PADDING_Y,
+			GUI_SLIDER_SIZE, GUI_SLIDER_SIZE,
+		), "#74#",
 	)
 	if butR1 {
 		*fps = DEFAULT_FPS
 	}
 
 	// Volume Control
-	gui.SetIconScale(1)
+	gui.SetIconScale(GUI_RESET_ICON_SIZE)
 	gui.Slider(
-		rl.NewRectangle(GUI_PADDING_X, WINDOW_HEIGHT+GUI_PADDING_Y+30, 120, 20),
-		"Volume", fmt.Sprintf("%2.0f %%", *volume),
+		rl.NewRectangle(
+			GUI_SLIDER_PADDING_X, height+GUI_SLIDER_PADDING_Y+GUI_SLIDER_SEPARATION,
+			GUI_SLIDER_LENGTH, GUI_SLIDER_SIZE,
+		), "Volume", fmt.Sprintf("%2.0f %%", *volume),
 		volume, MIN_VOLUME, MAX_VOLUME,
 	)
 	butR2 := gui.Button(
-		rl.NewRectangle(GUI_PADDING_X+200, WINDOW_HEIGHT+GUI_PADDING_Y+30, 20, 20),
-		"#74#",
+		rl.NewRectangle(
+			GUI_SLIDER_PADDING_X+GUI_SLIDER_RESET_OFFSET, height+GUI_SLIDER_PADDING_Y+GUI_SLIDER_SEPARATION,
+			GUI_SLIDER_SIZE, GUI_SLIDER_SIZE,
+		), "#74#",
 	)
 	if butR2 {
 		*volume = DEFAULT_VOLUME
 	}
 
 	// Buzzer Control
-	gui.SetIconScale(1)
+	gui.SetIconScale(GUI_RESET_ICON_SIZE)
 	gui.Slider(
-		rl.NewRectangle(GUI_PADDING_X, WINDOW_HEIGHT+GUI_PADDING_Y+60, 120, 20),
-		"Buzzer", fmt.Sprintf("%2.0f Hz", *buzzer),
+		rl.NewRectangle(
+			GUI_SLIDER_PADDING_X, height+GUI_SLIDER_PADDING_Y+GUI_SLIDER_SEPARATION*2,
+			GUI_SLIDER_LENGTH, GUI_SLIDER_SIZE,
+		), "Buzzer", fmt.Sprintf("%2.0f Hz", *buzzer),
 		buzzer, MIN_BUZZER_FREQ, MAX_BUZZER_FREQ,
 	)
 	butR3 := gui.Button(
-		rl.NewRectangle(GUI_PADDING_X+200, WINDOW_HEIGHT+GUI_PADDING_Y+60, 20, 20),
-		"#74#",
+		rl.NewRectangle(
+			GUI_SLIDER_PADDING_X+GUI_SLIDER_RESET_OFFSET, height+GUI_SLIDER_PADDING_Y+GUI_SLIDER_SEPARATION*2,
+			GUI_SLIDER_SIZE, GUI_SLIDER_SIZE,
+		), "#74#",
 	)
 	if butR3 {
 		*buzzer = DEFAULT_BUZZER_FREQ
 	}
 
+	/* BUTTONS */
+
 	// Pause
-	gui.SetIconScale(4)
+	gui.SetIconScale(GUI_ICON_SIZE)
 	pauseText := "#132#"
 	if emu.IsPaused() {
 		pauseText = "#131#"
 	}
 	if gui.Button(
-		rl.NewRectangle(GUI_PADDING_X+275, WINDOW_HEIGHT+GUI_PADDING_Y+5, 70, 70),
-		pauseText,
+		rl.NewRectangle(
+			width-GUI_BUTTON_PADDING_X-GUI_BUTTON_SEPARATION*3, height+GUI_BUTTON_PADDING_Y,
+			GUI_BUTTON_SIZE, GUI_BUTTON_SIZE,
+		), pauseText,
 	) {
 		emu.TogglePause()
 	}
 
 	// Reset
-	gui.SetIconScale(4)
+	gui.SetIconScale(GUI_ICON_SIZE)
 	if gui.Button(
-		rl.NewRectangle(GUI_PADDING_X+355, WINDOW_HEIGHT+GUI_PADDING_Y+5, 70, 70),
-		"#76#",
+		rl.NewRectangle(
+			width-GUI_BUTTON_PADDING_X-GUI_BUTTON_SEPARATION*2, height+GUI_BUTTON_PADDING_Y,
+			GUI_BUTTON_SIZE, GUI_BUTTON_SIZE,
+		), "#76#",
 	) {
 		emu.Reset()
 		if err := loadProgram(emu); err != nil {
@@ -182,10 +249,12 @@ func renderInterface(emu *chip8.CHIP8, fps *float32, volume *float32, buzzer *fl
 	}
 
 	// Load
-	gui.SetIconScale(4)
+	gui.SetIconScale(GUI_ICON_SIZE)
 	if gui.Button(
-		rl.NewRectangle(GUI_PADDING_X+435, WINDOW_HEIGHT+GUI_PADDING_Y+5, 70, 70),
-		"#5#",
+		rl.NewRectangle(
+			width-GUI_BUTTON_PADDING_X-GUI_BUTTON_SEPARATION, height+GUI_BUTTON_PADDING_Y,
+			GUI_BUTTON_SIZE, GUI_BUTTON_SIZE,
+		), "#5#",
 	) {
 		file, err := zenity.SelectFile()
 		if err != nil {
@@ -202,4 +271,16 @@ func renderInterface(emu *chip8.CHIP8, fps *float32, volume *float32, buzzer *fl
 			panic(err)
 		}
 	}
+
+	// Reset window
+	gui.SetIconScale(GUI_ICON_SIZE)
+	if gui.Button(
+		rl.NewRectangle(
+			width-GUI_BUTTON_PADDING_X, height+GUI_BUTTON_PADDING_Y,
+			GUI_BUTTON_SIZE, GUI_BUTTON_SIZE,
+		), "#105#",
+	) {
+		rl.SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT+GUI_HEIGHT)
+	}
+
 }

@@ -12,10 +12,8 @@ import (
 
 const WINDOW_WIDTH = 640
 const WINDOW_HEIGHT = 320
-const GUI_HEIGHT = 100
-const GUI_PADDING_X = 80
-const GUI_PADDING_Y = 10
 const AUDIO_BUFFER_SIZE = 4096
+const VOLUME_DIVISION_FACTOR = 500
 const SAMPLE_RATE = 44100
 
 /* FLAGS */
@@ -33,6 +31,7 @@ func main() {
 	// Create and setup the emulator
 	emu := new(chip8.CHIP8)
 	emu.SetInputFunction(inputHandler())
+	emu.SetKeyFunction(keyHandler())
 	emu.Reset() // Resets all values
 	if err := loadProgram(emu); err != nil {
 		panic(err)
@@ -42,6 +41,7 @@ func main() {
 	fps := float32(DEFAULT_FPS)
 	vol := float32(DEFAULT_VOLUME)
 	freq := float32(DEFAULT_BUZZER_FREQ)
+	showGUI := true
 
 	// Initialise raylib
 	rl.SetConfigFlags(rl.FlagVsyncHint | rl.FlagWindowResizable)
@@ -56,7 +56,7 @@ func main() {
 	stream := rl.LoadAudioStream(SAMPLE_RATE, 32, 1)
 	rl.PlayAudioStream(stream)
 	rl.SetAudioStreamCallback(stream, audioCallback(emu, &freq))
-	rl.SetAudioStreamVolume(stream, vol)
+	rl.SetAudioStreamVolume(stream, vol/VOLUME_DIVISION_FACTOR)
 	defer rl.UnloadAudioStream(stream)
 	defer rl.CloseAudioDevice()
 
@@ -66,6 +66,10 @@ func main() {
 
 	// Main loop
 	for !rl.WindowShouldClose() {
+		// STATE
+		oldFPS := fps
+		oldVol := vol
+
 		// CPU
 		emu.Step()
 
@@ -78,13 +82,18 @@ func main() {
 
 		// RESIZE
 		src := rl.NewRectangle(0, 0, float32(chip8.DISPLAY_X), -float32(chip8.DISPLAY_Y))
-		dst := rl.NewRectangle(0, 0, float32(rl.GetScreenWidth()), float32(rl.GetScreenHeight()-GUI_HEIGHT))
+		guiHeight := GUI_HEIGHT
+		if !showGUI {
+			guiHeight = 0
+		}
+		dst := rl.NewRectangle(0, 0, float32(rl.GetScreenWidth()), float32(rl.GetScreenHeight()-guiHeight))
 		rl.DrawTexturePro(canvas.Texture, src, dst, rl.NewVector2(0, 0), 0, rl.White)
 
 		// GUI
-		oldFPS := fps
-		oldVol := vol
-		renderInterface(emu, &fps, &vol, &freq)
+		showGUI = checkInterfaceToggle(showGUI)
+		if showGUI {
+			renderInterface(emu, &fps, &vol, &freq)
+		}
 
 		rl.EndDrawing()
 
@@ -94,7 +103,7 @@ func main() {
 		}
 
 		if vol != oldVol {
-			rl.SetAudioStreamVolume(stream, vol/500)
+			rl.SetAudioStreamVolume(stream, vol/VOLUME_DIVISION_FACTOR)
 		}
 	}
 }

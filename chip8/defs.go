@@ -49,6 +49,7 @@ type CHIP8 struct {
 	paused      bool          // controls if its paused
 	keysPressed []byte        // Keys held down that frame
 	inputFunc   func() []byte // Function that returns keys pressed that frame
+	keyFunc     func() byte   // Returns key pressed that frame
 }
 
 /* SETUP FUNCTIONS */
@@ -63,4 +64,8 @@ func (c *CHIP8) GetDisplay() [DISPLAY_X][DISPLAY_Y]bool {
 
 func (c *CHIP8) SetInputFunction(fun func() []byte) {
 	c.inputFunc = fun
+}
+
+func (c *CHIP8) SetKeyFunction(fun func() byte) {
+	c.keyFunc = fun
 }

@@ -227,12 +227,13 @@ func (c *CHIP8) instrFX07(X uint8) {
 }
 
 func (c *CHIP8) instrFX0A(X uint8) {
-	if len(c.keysPressed) == 0 {
+	key := c.keyFunc()
+	if key == 0x0 {
 		c.regPC -= 2
 		return
 	}
 
-	c.registers[X] = c.keysPressed[0]
+	c.registers[X] = key
 }
 
 func (c *CHIP8) instrFX15(X uint8) {
