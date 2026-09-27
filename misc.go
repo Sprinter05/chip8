@@ -5,19 +5,31 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-var KB_KEYS = []int32{
-	rl.KeyOne, rl.KeyTwo, rl.KeyThree, rl.KeyFour,
-	rl.KeyQ, rl.KeyW, rl.KeyE, rl.KeyR,
-	rl.KeyA, rl.KeyS, rl.KeyD, rl.KeyF,
-	rl.KeyZ, rl.KeyX, rl.KeyC, rl.KeyV,
+var KB_KEYS_MAP = map[int32]byte{
+	rl.KeyOne:   0x1,
+	rl.KeyTwo:   0x2,
+	rl.KeyThree: 0x3,
+	rl.KeyFour:  0xC,
+	rl.KeyQ:     0x4,
+	rl.KeyW:     0x5,
+	rl.KeyE:     0x6,
+	rl.KeyR:     0xD,
+	rl.KeyA:     0x7,
+	rl.KeyS:     0x8,
+	rl.KeyD:     0x9,
+	rl.KeyF:     0xE,
+	rl.KeyZ:     0xA,
+	rl.KeyX:     0x0,
+	rl.KeyC:     0xB,
+	rl.KeyV:     0xF,
 }
 
-func handleInput() func() []byte {
+func inputHandler() func() []byte {
 	return func() []byte {
-		keys := make([]byte, 0, len(KB_KEYS))
-		for code, expected := range KB_KEYS {
-			if rl.IsKeyPressed(expected) {
-				keys = append(keys, byte(code))
+		keys := make([]byte, 0, len(KB_KEYS_MAP))
+		for expected, code := range KB_KEYS_MAP {
+			if rl.IsKeyDown(expected) {
+				keys = append(keys, code)
 			}
 		}
 

@@ -147,7 +147,7 @@ func (c *CHIP8) LoadROM(program []byte) error {
 
 func (c *CHIP8) Step() {
 	keys := c.InputFunc()
-	copy(c.keysPressed, keys)
+	c.keysPressed = keys
 
 	c.handleTimers()
 

@@ -2,9 +2,7 @@ package main
 
 import (
 	"flag"
-	"math"
 	"os"
-	"time"
 
 	"github.com/Sprinter05/chip-8/chip8"
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -39,7 +37,7 @@ func main() {
 	// Create and setup the emulator
 	emu := new(chip8.CHIP8)
 	emu.Reset() // Resets all values
-	emu.InputFunc = handleInput()
+	emu.InputFunc = inputHandler()
 	if err := load(emu); err != nil {
 		panic(err)
 	}
@@ -52,11 +50,6 @@ func main() {
 	// Create texture for emulator display
 	canvas := rl.LoadRenderTexture(int32(chip8.DISPLAY_X), int32(chip8.DISPLAY_Y))
 	defer rl.UnloadRenderTexture(canvas)
-
-	// Create ticker for waiting when stepping
-	dur := int64(math.Round(FRAMETIME_US))
-	ticker := time.NewTicker(time.Duration(dur) * time.Microsecond)
-	defer ticker.Stop()
 
 	// Main loop
 	rl.SetTargetFPS(int32(FPS))
@@ -75,8 +68,5 @@ func main() {
 		rl.DrawTexturePro(canvas.Texture, src, dst, rl.NewVector2(0, 0), 0, rl.White)
 
 		rl.EndDrawing()
-
-		// WAIT
-		<-ticker.C
 	}
 }
