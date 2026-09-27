@@ -7,6 +7,8 @@ import (
 	"github.com/Sprinter05/chip-8/models"
 )
 
+/* ERRORS */
+
 var (
 	ErrRunningOnEmu   error = errors.New("cannot execute, running on an emulator")
 	ErrNotImplemented error = errors.New("instruction not implemented")

@@ -1,11 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/Sprinter05/chip-8/chip8"
+	gui "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+/* DEFINITIONS */
+
+const MIN_FPS = 30
+const MAX_FPS = 960
+const DEFAULT_FPS = 60
+const MIN_BUZZER_FREQ = 400
+const MAX_BUZZER_FREQ = 1500
+const DEFAULT_BUZZER_FREQ = 440
 
 var KB_KEYS_MAP = map[int32]byte{
 	rl.KeyOne:   0x1,
@@ -25,6 +36,8 @@ var KB_KEYS_MAP = map[int32]byte{
 	rl.KeyC:     0xB,
 	rl.KeyV:     0xF,
 }
+
+/* MISCELLANEOUS FUNCTIONS */
 
 func loadProgram(c *chip8.CHIP8) error {
 	f, err := os.ReadFile(fileROM)
@@ -66,14 +79,14 @@ func drawOnTexture(canvas rl.RenderTexture2D, emu *chip8.CHIP8) {
 	rl.EndTextureMode()
 }
 
-func audioCallback(c *chip8.CHIP8) rl.AudioCallback {
+func audioCallback(c *chip8.CHIP8, freq *float32) rl.AudioCallback {
 	index := 0
 	return func(data []float32, frames int) {
 		if c.GetSoundTimer() <= 0 {
 			return
 		}
 
-		wavelength := SAMPLE_RATE / BUZZER_FREQ
+		wavelength := SAMPLE_RATE / int(*freq)
 
 		for i := range frames {
 			if index < wavelength/2 {
@@ -85,5 +98,33 @@ func audioCallback(c *chip8.CHIP8) rl.AudioCallback {
 			index = (index + 1) % wavelength
 		}
 
+	}
+}
+
+func renderInterface(fps *float32, buzzer *float32) {
+	// FPS Control
+	gui.Slider(
+		rl.NewRectangle(GUI_PADDING_X, WINDOW_HEIGHT+GUI_PADDING_Y, 120, 30),
+		"FPS", fmt.Sprintf("%2.2f", *fps),
+		fps, MIN_FPS, MAX_FPS,
+	)
+	if gui.Button(
+		rl.NewRectangle(GUI_PADDING_X+165, WINDOW_HEIGHT+GUI_PADDING_Y, 30, 30),
+		"#77#",
+	) {
+		*fps = DEFAULT_FPS
+	}
+
+	// Buzzer Control
+	gui.Slider(
+		rl.NewRectangle(GUI_PADDING_X, WINDOW_HEIGHT+GUI_PADDING_Y+40, 120, 30),
+		"Buzzer", fmt.Sprintf("%2.0f Hz", *buzzer),
+		buzzer, MIN_BUZZER_FREQ, MAX_BUZZER_FREQ,
+	)
+	if gui.Button(
+		rl.NewRectangle(GUI_PADDING_X+165, WINDOW_HEIGHT+GUI_PADDING_Y+40, 30, 30),
+		"#77#",
+	) {
+		*buzzer = DEFAULT_BUZZER_FREQ
 	}
 }

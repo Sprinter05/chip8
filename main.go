@@ -4,16 +4,19 @@ import (
 	"flag"
 
 	"github.com/Sprinter05/chip-8/chip8"
+	gui "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-const FPS float64 = 60.0
-const FRAMETIME_US float64 = 1000000.0 / FPS // microseconds
+/* CONSTANTS */
+
 const WINDOW_WIDTH = 640
 const WINDOW_HEIGHT = 320
-const SAMPLE_RATE = 44100
+const GUI_HEIGHT = 100
+const GUI_PADDING_X = 50
+const GUI_PADDING_Y = 15
 const AUDIO_BUFFER_SIZE = 4096
-const BUZZER_FREQ = 440
+const SAMPLE_RATE = 44100
 
 /* FLAGS */
 
@@ -35,10 +38,14 @@ func main() {
 		panic(err)
 	}
 
+	// Controllable values
+	fps := float32(DEFAULT_FPS)
+	freq := float32(DEFAULT_BUZZER_FREQ)
+
 	// Initialise raylib
 	rl.SetConfigFlags(rl.FlagVsyncHint | rl.FlagWindowResizable)
-	rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "CHIP8 Interpreter")
-	rl.SetTargetFPS(int32(FPS))
+	rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT+GUI_HEIGHT, "CHIP8 Interpreter")
+	rl.SetTargetFPS(int32(fps))
 	defer rl.CloseWindow()
 
 	// Set audio stream
@@ -46,7 +53,7 @@ func main() {
 	rl.SetAudioStreamBufferSizeDefault(AUDIO_BUFFER_SIZE)
 	stream := rl.LoadAudioStream(SAMPLE_RATE, 32, 1)
 	rl.PlayAudioStream(stream)
-	rl.SetAudioStreamCallback(stream, audioCallback(emu))
+	rl.SetAudioStreamCallback(stream, audioCallback(emu, &freq))
 	defer rl.UnloadAudioStream(stream)
 	defer rl.CloseAudioDevice()
 
@@ -59,20 +66,27 @@ func main() {
 		// CPU
 		emu.Step()
 
-		// AUDIO
-		if emu.GetSoundTimer() > 0 {
-		}
-
-		// DISPLAY
-		drawOnTexture(canvas, emu)
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.Black)
-
 		// TEXTURE
+		drawOnTexture(canvas, emu)
+
+		// DRAW
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.GetColor(uint(gui.GetStyle(gui.DEFAULT, gui.BACKGROUND_COLOR))))
+
+		// RESIZE
 		src := rl.NewRectangle(0, 0, float32(chip8.DISPLAY_X), -float32(chip8.DISPLAY_Y))
-		dst := rl.NewRectangle(0, 0, float32(rl.GetScreenWidth()), float32(rl.GetScreenHeight()))
+		dst := rl.NewRectangle(0, 0, float32(rl.GetScreenWidth()), float32(rl.GetScreenHeight()-GUI_HEIGHT))
 		rl.DrawTexturePro(canvas.Texture, src, dst, rl.NewVector2(0, 0), 0, rl.White)
 
+		// GUI
+		oldFPS := fps
+		renderInterface(&fps, &freq)
+
 		rl.EndDrawing()
+
+		// VALUES
+		if fps != oldFPS {
+			rl.SetTargetFPS(int32(fps))
+		}
 	}
 }
