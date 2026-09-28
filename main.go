@@ -30,7 +30,7 @@ var (
 func init() {
 	flag.StringVar(&fileROM, "rom", "rom.ch8", "ROM file to open")
 	flag.BoolVar(&quirk1, "quirk1", false, "Both FX55 and FX65 increment the I register")
-	flag.BoolVar(&quirk2, "quirk2", false, "Clear VF on AND, OR and XOR instructions")
+	flag.BoolVar(&quirk2, "quirk2", false, "Do not clear VF on AND, OR and XOR instructions")
 	flag.BoolVar(&quirk3, "quirk3", false, "Do not wait for the display before drawing")
 	flag.Parse()
 }
@@ -57,6 +57,7 @@ func main() {
 	// Initialise raylib
 	rl.SetConfigFlags(rl.FlagVsyncHint | rl.FlagWindowResizable)
 	rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT+GUI_HEIGHT, "CHIP8 Interpreter")
+	rl.SetWindowMinSize(WINDOW_WIDTH, WINDOW_HEIGHT+GUI_HEIGHT)
 	rl.SetTargetFPS(FPS)
 	gui.SetStyle(gui.DEFAULT, gui.TEXT_SIZE, 20)
 	defer rl.CloseWindow()
@@ -81,6 +82,7 @@ func main() {
 		oldVol := vol
 
 		// CPU
+		emu.DecrementTimers()
 		for range int(ipf) {
 			needDraw := emu.Step()
 			if needDraw {

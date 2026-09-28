@@ -27,16 +27,6 @@ func (c *CHIP8) fetch() uint16 {
 	return uint16(byte1)<<8 | uint16(byte2)
 }
 
-func (c *CHIP8) handleTimers() {
-	if c.regDT > 0 {
-		c.regDT--
-	}
-
-	if c.regST > 0 {
-		c.regST--
-	}
-}
-
 func (c *CHIP8) decodeAndRun(instr uint16) {
 	// for NNN/NN/N instructions
 	address := instr &^ 0xF000
@@ -137,6 +127,16 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 
 /* PUBLIC */
 
+func (c *CHIP8) DecrementTimers() {
+	if c.regDT > 0 {
+		c.regDT--
+	}
+
+	if c.regST > 0 {
+		c.regST--
+	}
+}
+
 func (c *CHIP8) TogglePause() {
 	c.paused = !c.paused
 }
@@ -160,8 +160,6 @@ func (c *CHIP8) Step() bool {
 
 	keys := c.inputFunc()
 	c.keysPressed = keys
-
-	c.handleTimers()
 
 	instr := c.fetch()
 	c.decodeAndRun(instr)

@@ -142,10 +142,12 @@ func checkInterfaceToggle(show bool) bool {
 	if rl.IsKeyPressed(rl.KeySpace) {
 		if show {
 			rl.SetWindowSize(rl.GetScreenWidth(), rl.GetScreenHeight()-GUI_HEIGHT)
+			rl.SetWindowMinSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 		}
 
 		if !show {
 			rl.SetWindowSize(rl.GetScreenWidth(), rl.GetScreenHeight()+GUI_HEIGHT)
+			rl.SetWindowMinSize(WINDOW_WIDTH, WINDOW_HEIGHT+GUI_HEIGHT)
 		}
 
 		return !show
