@@ -80,7 +80,7 @@ func (c *CHIP8) instr8XY0(X uint8, Y uint8) {
 }
 
 func (c *CHIP8) instr8XY1(X uint8, Y uint8) {
-	if c.quirk3 {
+	if c.quirk2 {
 		c.registers[0xF] = 0x0
 	}
 
@@ -88,7 +88,7 @@ func (c *CHIP8) instr8XY1(X uint8, Y uint8) {
 }
 
 func (c *CHIP8) instr8XY2(X uint8, Y uint8) {
-	if c.quirk3 {
+	if c.quirk2 {
 		c.registers[0xF] = 0x0
 	}
 
@@ -96,7 +96,7 @@ func (c *CHIP8) instr8XY2(X uint8, Y uint8) {
 }
 
 func (c *CHIP8) instr8XY3(X uint8, Y uint8) {
-	if c.quirk3 {
+	if c.quirk2 {
 		c.registers[0xF] = 0x0
 	}
 

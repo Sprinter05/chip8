@@ -29,8 +29,8 @@ var (
 func init() {
 	flag.StringVar(&fileROM, "rom", "rom.ch8", "ROM file to open")
 	flag.BoolVar(&quirk1, "quirk1", false, "Both FX55 and FX65 increment the I register")
-	flag.BoolVar(&quirk2, "quirk2", false, "Do not wait for the display before drawing")
-	flag.BoolVar(&quirk3, "quirk3", false, "Clear VF on AND, OR and XOR instructions")
+	flag.BoolVar(&quirk2, "quirk2", false, "Clear VF on AND, OR and XOR instructions")
+	flag.BoolVar(&quirk3, "quirk3", false, "Do not wait for the display before drawing")
 	flag.Parse()
 }
 

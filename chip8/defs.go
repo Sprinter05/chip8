@@ -47,11 +47,12 @@ type CHIP8 struct {
 
 	// Quirks
 	quirk1 bool // FX55 and FX66 increment the I register
-	quirk2 bool // Do not wait for the display to draw
-	quirk3 bool // Clear VF on AND, OR and XOR instructions
+	quirk2 bool // Clear VF on AND, OR and XOR instructions
+	quirk3 bool // Do not wait for the display to draw
 
 	// State values
 	paused      bool          // controls if its paused
+	loaded      bool          // controls if a rom has been loaded
 	keysPressed []byte        // Keys held down that frame
 	inputFunc   func() []byte // Function that returns keys pressed that frame
 	keyFunc     func() byte   // Returns key pressed that frame
@@ -82,6 +83,6 @@ func (c *CHIP8) SetKeyFunction(fun func() byte) {
 // Check type definiticon comments for more info
 func (c *CHIP8) SetQuirks(quirk1 bool, quirk2 bool, quirk3 bool) {
 	c.quirk1 = quirk1
-	c.quirk2 = quirk2
-	c.quirk3 = quirk3
+	c.quirk3 = quirk2
+	c.quirk2 = quirk3
 }

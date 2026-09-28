@@ -15,7 +15,7 @@ import (
 // VALUES
 const MIN_IPF = 1
 const MAX_IPF = 30
-const DEFAULT_IPF = 11
+const DEFAULT_IPF = 13
 const MIN_VOLUME = 0
 const MAX_VOLUME = 100
 const DEFAULT_VOLUME = 30

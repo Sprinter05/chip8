@@ -11,7 +11,7 @@
             "mode": "debug",
             "args": [
                 "--rom",
-                "test.ch8"
+                "logo.ch8"
             ],
             "program": "${workspaceFolder}",
             "cwd": "${workspaceFolder}",

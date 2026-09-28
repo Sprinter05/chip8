@@ -2,6 +2,7 @@ package chip8
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/Sprinter05/chip-8/models"
@@ -104,7 +105,7 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 			default:
 				switch instr &^ 0x0FFF {
 				case 0x0000:
-					panic(ErrRunningOnEmu)
+					fmt.Print(ErrRunningOnEmu)
 				case 0x1000:
 					c.instr1NNN(address)
 				case 0x2000:
@@ -147,12 +148,13 @@ func (c *CHIP8) LoadROM(program []byte) error {
 	}
 
 	copy(c.memory[PC_START:], program[:])
+	c.loaded = true
 
 	return nil
 }
 
 func (c *CHIP8) Step() bool {
-	if c.paused || c.memory[PC_START] == 0x0 {
+	if c.paused || !c.loaded {
 		return false
 	}
 
@@ -164,7 +166,7 @@ func (c *CHIP8) Step() bool {
 	instr := c.fetch()
 	c.decodeAndRun(instr)
 
-	if instr&^0x0FFF == 0xD000 && !c.quirk2 {
+	if instr&^0x0FFF == 0xD000 && !c.quirk3 {
 		return true
 	}
 
@@ -189,6 +191,7 @@ func (c *CHIP8) Reset() {
 
 	// Clear state
 	c.paused = false
+	c.loaded = false
 	clear(c.keysPressed)
 
 	// Load font onto memory
