@@ -1,3 +1,7 @@
+# Files
 *.ch8
 __debug_bin*
+
+# Folders
 build
+roms
