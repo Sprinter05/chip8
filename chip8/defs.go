@@ -47,6 +47,8 @@ type CHIP8 struct {
 
 	// Quirks
 	quirk1 bool // FX55 and FX66 increment the I register
+	quirk2 bool // Do not wait for the display to draw
+	quirk3 bool // Clear VF on AND, OR and XOR instructions
 
 	// State values
 	paused      bool          // controls if its paused
@@ -78,6 +80,8 @@ func (c *CHIP8) SetKeyFunction(fun func() byte) {
 }
 
 // Check type definiticon comments for more info
-func (c *CHIP8) SetQuirks(quirk1 bool) {
+func (c *CHIP8) SetQuirks(quirk1 bool, quirk2 bool, quirk3 bool) {
 	c.quirk1 = quirk1
+	c.quirk2 = quirk2
+	c.quirk3 = quirk3
 }

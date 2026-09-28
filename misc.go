@@ -13,9 +13,9 @@ import (
 /* DEFINITIONS */
 
 // VALUES
-const MIN_FPS = 30
-const MAX_FPS = 960
-const DEFAULT_FPS = 60
+const MIN_IPF = 1
+const MAX_IPF = 30
+const DEFAULT_IPF = 11
 const MIN_VOLUME = 0
 const MAX_VOLUME = 100
 const DEFAULT_VOLUME = 30
@@ -154,20 +154,20 @@ func checkInterfaceToggle(show bool) bool {
 	return show
 }
 
-func renderInterface(emu *chip8.CHIP8, fps *float32, volume *float32, buzzer *float32) {
+func renderInterface(emu *chip8.CHIP8, ipf *float32, volume *float32, buzzer *float32) {
 	width := float32(rl.GetScreenWidth())
 	height := float32(rl.GetScreenHeight() - GUI_HEIGHT)
 
 	/* SLIDERS */
 
-	// FPS Control
+	// IPF Control
 	gui.SetIconScale(GUI_RESET_ICON_SIZE)
 	gui.Slider(
 		rl.NewRectangle(
 			GUI_SLIDER_PADDING_X, height+GUI_SLIDER_PADDING_Y,
 			GUI_SLIDER_LENGTH, GUI_SLIDER_SIZE,
-		), "FPS", fmt.Sprintf("%2.2f", *fps),
-		fps, MIN_FPS, MAX_FPS,
+		), "IPF", fmt.Sprintf("%2.0f", *ipf),
+		ipf, MIN_IPF, MAX_IPF,
 	)
 	butR1 := gui.Button(
 		rl.NewRectangle(
@@ -176,7 +176,7 @@ func renderInterface(emu *chip8.CHIP8, fps *float32, volume *float32, buzzer *fl
 		), "#74#",
 	)
 	if butR1 {
-		*fps = DEFAULT_FPS
+		*ipf = DEFAULT_IPF
 	}
 
 	// Volume Control

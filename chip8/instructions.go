@@ -80,19 +80,25 @@ func (c *CHIP8) instr8XY0(X uint8, Y uint8) {
 }
 
 func (c *CHIP8) instr8XY1(X uint8, Y uint8) {
-	c.registers[0xF] = 0x0
+	if c.quirk3 {
+		c.registers[0xF] = 0x0
+	}
 
 	c.registers[X] |= c.registers[Y]
 }
 
 func (c *CHIP8) instr8XY2(X uint8, Y uint8) {
-	c.registers[0xF] = 0x0
+	if c.quirk3 {
+		c.registers[0xF] = 0x0
+	}
 
 	c.registers[X] &= c.registers[Y]
 }
 
 func (c *CHIP8) instr8XY3(X uint8, Y uint8) {
-	c.registers[0xF] = 0x0
+	if c.quirk3 {
+		c.registers[0xF] = 0x0
+	}
 
 	c.registers[X] ^= c.registers[Y]
 }

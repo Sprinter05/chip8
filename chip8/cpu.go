@@ -151,9 +151,9 @@ func (c *CHIP8) LoadROM(program []byte) error {
 	return nil
 }
 
-func (c *CHIP8) Step() {
+func (c *CHIP8) Step() bool {
 	if c.paused || c.memory[PC_START] == 0x0 {
-		return
+		return false
 	}
 
 	keys := c.inputFunc()
@@ -163,6 +163,12 @@ func (c *CHIP8) Step() {
 
 	instr := c.fetch()
 	c.decodeAndRun(instr)
+
+	if instr&^0x0FFF == 0xD000 && !c.quirk2 {
+		return true
+	}
+
+	return false
 }
 
 func (c *CHIP8) Reset() {

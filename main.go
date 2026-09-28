@@ -10,6 +10,7 @@ import (
 
 /* CONSTANTS */
 
+const FPS = 60
 const WINDOW_WIDTH = 640
 const WINDOW_HEIGHT = 320
 const AUDIO_BUFFER_SIZE = 4096
@@ -18,12 +19,18 @@ const SAMPLE_RATE = 44100
 
 /* FLAGS */
 
-var fileROM string
-var quirk1 bool
+var (
+	fileROM string
+	quirk1  bool
+	quirk2  bool
+	quirk3  bool
+)
 
 func init() {
 	flag.StringVar(&fileROM, "rom", "rom.ch8", "ROM file to open")
 	flag.BoolVar(&quirk1, "quirk1", false, "Both FX55 and FX65 increment the I register")
+	flag.BoolVar(&quirk2, "quirk2", false, "Do not wait for the display before drawing")
+	flag.BoolVar(&quirk3, "quirk3", false, "Clear VF on AND, OR and XOR instructions")
 	flag.Parse()
 }
 
@@ -34,14 +41,14 @@ func main() {
 	emu := new(chip8.CHIP8)
 	emu.SetInputFunction(inputHandler())
 	emu.SetKeyFunction(keyHandler())
-	emu.SetQuirks(quirk1)
+	emu.SetQuirks(quirk1, quirk2, quirk3)
 	emu.Reset() // Resets all values
 	if err := loadProgram(emu); err != nil {
 		panic(err)
 	}
 
 	// Controllable values
-	fps := float32(DEFAULT_FPS)
+	ipf := float32(DEFAULT_IPF)
 	vol := float32(DEFAULT_VOLUME)
 	freq := float32(DEFAULT_BUZZER_FREQ)
 	showGUI := true
@@ -49,7 +56,7 @@ func main() {
 	// Initialise raylib
 	rl.SetConfigFlags(rl.FlagVsyncHint | rl.FlagWindowResizable)
 	rl.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT+GUI_HEIGHT, "CHIP8 Interpreter")
-	rl.SetTargetFPS(int32(fps))
+	rl.SetTargetFPS(FPS)
 	gui.SetStyle(gui.DEFAULT, gui.TEXT_SIZE, 20)
 	defer rl.CloseWindow()
 
@@ -70,14 +77,29 @@ func main() {
 	// Main loop
 	for !rl.WindowShouldClose() {
 		// STATE
-		oldFPS := fps
 		oldVol := vol
 
 		// CPU
-		emu.Step()
+		for range int(ipf) {
+			needDraw := emu.Step()
+			if needDraw {
+				break
+			}
+		}
 
 		// TEXTURE
 		drawOnTexture(canvas, emu)
+
+		// GUI
+		showGUI = checkInterfaceToggle(showGUI)
+		if showGUI {
+			renderInterface(emu, &ipf, &vol, &freq)
+		}
+
+		// STATE
+		if vol != oldVol {
+			rl.SetAudioStreamVolume(stream, vol/VOLUME_DIVISION_FACTOR)
+		}
 
 		// DRAW
 		rl.BeginDrawing()
@@ -92,21 +114,6 @@ func main() {
 		dst := rl.NewRectangle(0, 0, float32(rl.GetScreenWidth()), float32(rl.GetScreenHeight()-guiHeight))
 		rl.DrawTexturePro(canvas.Texture, src, dst, rl.NewVector2(0, 0), 0, rl.White)
 
-		// GUI
-		showGUI = checkInterfaceToggle(showGUI)
-		if showGUI {
-			renderInterface(emu, &fps, &vol, &freq)
-		}
-
 		rl.EndDrawing()
-
-		// STATE
-		if fps != oldFPS {
-			rl.SetTargetFPS(int32(fps))
-		}
-
-		if vol != oldVol {
-			rl.SetAudioStreamVolume(stream, vol/VOLUME_DIVISION_FACTOR)
-		}
 	}
 }
