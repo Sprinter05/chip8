@@ -83,6 +83,6 @@ func (c *CHIP8) SetKeyFunction(fun func() byte) {
 // Check type definiticon comments for more info
 func (c *CHIP8) SetQuirks(quirk1 bool, quirk2 bool, quirk3 bool) {
 	c.quirk1 = quirk1
-	c.quirk3 = quirk2
-	c.quirk2 = quirk3
+	c.quirk2 = quirk2
+	c.quirk3 = quirk3
 }

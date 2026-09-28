@@ -11,6 +11,7 @@ import (
 /* CONSTANTS */
 
 const FPS = 60
+const FRAMETIME_US float64 = 1000000.0 / FPS // microseconds
 const WINDOW_WIDTH = 640
 const WINDOW_HEIGHT = 320
 const AUDIO_BUFFER_SIZE = 4096
