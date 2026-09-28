@@ -8,7 +8,7 @@ import (
 
 const DISPLAY_X uint = 64
 const DISPLAY_Y uint = 32
-const MEM_SIZE uint = 0x1000
+const MEM_SIZE uint = 0x1000 // 4096 bytes
 const STACK_SIZE uint = 16
 const PC_START uint = 0x200
 const FONT_OFFSET uint = 0x050
@@ -60,27 +60,33 @@ type CHIP8 struct {
 
 /* SETUP FUNCTIONS */
 
+// Get value of sound timer
 func (c *CHIP8) GetSoundTimer() uint {
 	return uint(c.regST)
 }
 
+// Get display array
 func (c *CHIP8) GetDisplay() [DISPLAY_X][DISPLAY_Y]bool {
 	return c.display
 }
 
+// Check if the emulator is paused
 func (c *CHIP8) GetPaused() bool {
 	return c.paused
 }
 
-func (c *CHIP8) SetInputFunction(fun func() []byte) {
-	c.inputFunc = fun
-}
-
+// Set function to check last pressed key
 func (c *CHIP8) SetKeyFunction(fun func() byte) {
 	c.keyFunc = fun
 }
 
-// Check type definiticon comments for more info
+// Set function to check pressed keys
+func (c *CHIP8) SetInputFunction(fun func() []byte) {
+	c.inputFunc = fun
+}
+
+// Toggle quirks
+// Check type definition comments for more info
 func (c *CHIP8) SetQuirks(quirk1 bool, quirk2 bool, quirk3 bool) {
 	c.quirk1 = quirk1
 	c.quirk2 = quirk2

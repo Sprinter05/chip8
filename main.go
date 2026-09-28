@@ -12,11 +12,11 @@ import (
 
 const FPS = 60
 const FRAMETIME_US float64 = 1000000.0 / FPS // microseconds
-const WINDOW_WIDTH = 640
-const WINDOW_HEIGHT = 320
-const AUDIO_BUFFER_SIZE = 4096
-const VOLUME_DIVISION_FACTOR = 500
+const WINDOW_WIDTH = 640                     // Minimum
+const WINDOW_HEIGHT = 320                    // Minimum
+const VOLUME_DIVISION_FACTOR = 500           // This is vol% / division_factor
 const SAMPLE_RATE = 44100
+const AUDIO_BUFFER_SIZE = 4096
 
 /* FLAGS */
 
@@ -27,6 +27,7 @@ var (
 	quirk3  bool
 )
 
+// Flag parsing
 func init() {
 	flag.StringVar(&fileROM, "rom", "rom.ch8", "ROM file to open")
 	flag.BoolVar(&quirk1, "quirk1", false, "Both FX55 and FX65 increment the I register")
@@ -49,10 +50,10 @@ func main() {
 	}
 
 	// Controllable values
-	ipf := float32(DEFAULT_IPF)
-	vol := float32(DEFAULT_VOLUME)
-	freq := float32(DEFAULT_BUZZER_FREQ)
-	showGUI := true
+	ipf := float32(DEFAULT_IPF)          // Instructions per frame
+	vol := float32(DEFAULT_VOLUME)       // Buzzer volume
+	freq := float32(DEFAULT_BUZZER_FREQ) // Buzzer tone
+	showGUI := true                      // Show interface
 
 	// Initialise raylib
 	rl.SetConfigFlags(rl.FlagVsyncHint | rl.FlagWindowResizable)
@@ -78,10 +79,10 @@ func main() {
 
 	// Main loop
 	for !rl.WindowShouldClose() {
-		// STATE
+		// SAVE STATE
 		oldVol := vol
 
-		// CPU
+		// CPU HANDLING
 		emu.DecrementTimers()
 		for range int(ipf) {
 			needDraw := emu.Step()
@@ -90,25 +91,25 @@ func main() {
 			}
 		}
 
-		// TEXTURE
+		// DISPLAY TEXTURE
 		drawOnTexture(canvas, emu)
 
-		// GUI
+		// GUI RENDERING
 		showGUI = checkInterfaceToggle(showGUI)
 		if showGUI {
 			renderInterface(emu, &ipf, &vol, &freq)
 		}
 
-		// STATE
+		// CHANGE STATE
 		if vol != oldVol {
 			rl.SetAudioStreamVolume(stream, vol/VOLUME_DIVISION_FACTOR)
 		}
 
-		// DRAW
+		// DRAW WINDOW
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.GetColor(uint(gui.GetStyle(gui.DEFAULT, gui.BACKGROUND_COLOR))))
 
-		// RESIZE
+		// RESIZE DISPLAY
 		src := rl.NewRectangle(0, 0, float32(chip8.DISPLAY_X), -float32(chip8.DISPLAY_Y))
 		guiHeight := GUI_HEIGHT
 		if !showGUI {
@@ -117,6 +118,7 @@ func main() {
 		dst := rl.NewRectangle(0, 0, float32(rl.GetScreenWidth()), float32(rl.GetScreenHeight()-guiHeight))
 		rl.DrawTexturePro(canvas.Texture, src, dst, rl.NewVector2(0, 0), 0, rl.White)
 
+		// END ITERATION
 		rl.EndDrawing()
 	}
 }

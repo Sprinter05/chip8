@@ -11,13 +11,14 @@ import (
 /* ERRORS */
 
 var (
-	ErrRunningOnEmu   error = errors.New("cannot execute, running on an emulator")
-	ErrNotImplemented error = errors.New("instruction not implemented")
-	ErrTooBig         error = errors.New("program is too big")
+	ErrRunningOnEmu       error = errors.New("cannot execute, running on an emulator")
+	ErrUnknownInstruction error = errors.New("instruction not known")
+	ErrTooBig             error = errors.New("program is too big")
 )
 
 /* PRIVATE */
 
+// An instruction is two bytes from memory
 func (c *CHIP8) fetch() uint16 {
 	byte1 := c.memory[c.regPC]
 	byte2 := c.memory[c.regPC+1]
@@ -27,6 +28,7 @@ func (c *CHIP8) fetch() uint16 {
 	return uint16(byte1)<<8 | uint16(byte2)
 }
 
+// Decode instruction and run its function
 func (c *CHIP8) decodeAndRun(instr uint16) {
 	// for NNN/NN/N instructions
 	address := instr &^ 0xF000
@@ -37,8 +39,7 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 	varX := uint8((instr >> 8) &^ 0xFFF0)
 	varY := uint8((instr >> 4) &^ 0xFFF0)
 
-	// Instruction formatitng is weird
-	// so we just do if-else
+	// Check all instructions
 	switch instr {
 	case 0x00E0:
 		c.instr00E0()
@@ -95,6 +96,9 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 			default:
 				switch instr &^ 0x0FFF {
 				case 0x0000:
+					// Execute machine language subroutine at address NNN
+					// Not implemented on emulator
+					log.Printf("%x erroneus instruction!\n", instr)
 					fmt.Print(ErrRunningOnEmu)
 				case 0x1000:
 					c.instr1NNN(address)
@@ -117,8 +121,9 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 				case 0xD000:
 					c.instrDXYN(varX, varY, nibble)
 				default:
-					log.Printf("%x not implemented!\n", instr)
-					panic(ErrNotImplemented)
+					// Every instruction is implemented so this should not run
+					log.Printf("%x unknown instruction!\n", instr)
+					panic(ErrUnknownInstruction)
 				}
 			}
 		}
@@ -127,6 +132,8 @@ func (c *CHIP8) decodeAndRun(instr uint16) {
 
 /* PUBLIC */
 
+// Decrement both the delay and sound timer
+// Should only run once per frame
 func (c *CHIP8) DecrementTimers() {
 	if c.regDT > 0 {
 		c.regDT--
@@ -137,10 +144,12 @@ func (c *CHIP8) DecrementTimers() {
 	}
 }
 
+// Toggle emulator pause state
 func (c *CHIP8) TogglePause() {
 	c.paused = !c.paused
 }
 
+// Load ROM into memory
 func (c *CHIP8) LoadROM(program []byte) error {
 	// Cant be bigger than memory size and base address
 	if len(program) > (int(MEM_SIZE) - int(PC_START)) {
@@ -153,17 +162,23 @@ func (c *CHIP8) LoadROM(program []byte) error {
 	return nil
 }
 
+// Run a single instruction
+// Returns true if the last instruction ran was drawing
 func (c *CHIP8) Step() bool {
 	if c.paused || !c.loaded {
 		return false
 	}
 
+	// Input handling
 	keys := c.inputFunc()
 	c.keysPressed = keys
 
+	// Fetch, decode and execute
 	instr := c.fetch()
 	c.decodeAndRun(instr)
 
+	// Return true if we have drawn onto the screen
+	// This allows the DISPLAY_WAIT quirk to work
 	if instr&^0x0FFF == 0xD000 && !c.quirk3 {
 		return true
 	}
@@ -171,8 +186,9 @@ func (c *CHIP8) Step() bool {
 	return false
 }
 
+// Reset emulator state
 func (c *CHIP8) Reset() {
-	// Clear everything
+	// Clear data
 	c.regI = 0x0
 	clear(c.registers[:])
 	clear(c.memory[:])

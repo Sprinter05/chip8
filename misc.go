@@ -32,11 +32,11 @@ const GUI_BUTTON_PADDING_Y = 20
 const GUI_SLIDER_SEPARATION = 30
 const GUI_BUTTON_SEPARATION = 70
 const GUI_SLIDER_RESET_OFFSET = 200
-const GUI_SLIDER_SIZE = 20
 const GUI_SLIDER_LENGTH = 120
+const GUI_SLIDER_SIZE = 20
 const GUI_BUTTON_SIZE = 60
-const GUI_RESET_ICON_SIZE = 1
 const GUI_ICON_SIZE = 3
+const GUI_RESET_ICON_SIZE = 1
 
 var KB_KEYS_MAP = map[int32]byte{
 	rl.KeyOne:   0x1,
@@ -59,6 +59,7 @@ var KB_KEYS_MAP = map[int32]byte{
 
 /* MISCELLANEOUS FUNCTIONS */
 
+// Load program if it exists, otherwise pause the emulator
 func loadProgram(emu *chip8.CHIP8) error {
 	f, err := os.ReadFile(fileROM)
 	if err != nil {
@@ -77,9 +78,12 @@ func loadProgram(emu *chip8.CHIP8) error {
 	return nil
 }
 
+// Get last key pressed
 func keyHandler() func() byte {
 	return func() byte {
 		code := rl.GetKeyPressed()
+
+		// Check that the key is one from the keypad
 		hex, exists := KB_KEYS_MAP[code]
 		if code == 0x0 || !exists {
 			return 0x0
@@ -89,6 +93,7 @@ func keyHandler() func() byte {
 	}
 }
 
+// Get currently pressed keys
 func inputHandler() func() []byte {
 	return func() []byte {
 		keys := make([]byte, 0, len(KB_KEYS_MAP))
@@ -102,6 +107,7 @@ func inputHandler() func() []byte {
 	}
 }
 
+// Draw display onto 2D texture
 func drawOnTexture(canvas rl.RenderTexture2D, emu *chip8.CHIP8) {
 	rl.BeginTextureMode(canvas)
 	rl.ClearBackground(rl.Black)
@@ -116,6 +122,7 @@ func drawOnTexture(canvas rl.RenderTexture2D, emu *chip8.CHIP8) {
 	rl.EndTextureMode()
 }
 
+// Run this function whenever the audio buffer needs new samples
 func audioCallback(c *chip8.CHIP8, freq *float32) rl.AudioCallback {
 	index := 0
 	return func(data []float32, frames int) {
@@ -125,6 +132,7 @@ func audioCallback(c *chip8.CHIP8, freq *float32) rl.AudioCallback {
 
 		wavelength := SAMPLE_RATE / int(*freq)
 
+		// Square wave
 		for i := range frames {
 			if index < wavelength/2 {
 				data[i] = 1.0
@@ -138,6 +146,7 @@ func audioCallback(c *chip8.CHIP8, freq *float32) rl.AudioCallback {
 	}
 }
 
+// Check if the interface needs to be hidden/shown
 func checkInterfaceToggle(show bool) bool {
 	if rl.IsKeyPressed(rl.KeySpace) {
 		if show {
@@ -221,7 +230,7 @@ func renderInterface(emu *chip8.CHIP8, ipf *float32, volume *float32, buzzer *fl
 
 	/* BUTTONS */
 
-	// Pause
+	// Pause emulator
 	gui.SetIconScale(GUI_ICON_SIZE)
 	pauseText := "#132#"
 	if emu.GetPaused() {
@@ -236,7 +245,7 @@ func renderInterface(emu *chip8.CHIP8, ipf *float32, volume *float32, buzzer *fl
 		emu.TogglePause()
 	}
 
-	// Reset
+	// Reset emulator
 	gui.SetIconScale(GUI_ICON_SIZE)
 	if gui.Button(
 		rl.NewRectangle(
@@ -250,7 +259,7 @@ func renderInterface(emu *chip8.CHIP8, ipf *float32, volume *float32, buzzer *fl
 		}
 	}
 
-	// Load
+	// Load ROM
 	gui.SetIconScale(GUI_ICON_SIZE)
 	if gui.Button(
 		rl.NewRectangle(
